@@ -1,3 +1,4 @@
+###For local test
 
 @echo off
 REM === Définir les chemins ===
