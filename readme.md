@@ -2,7 +2,7 @@ QSEQUOIA2
 
 
 📥 download the latest version
-👉 [download the plugin (release)]((https://github.com/SequoiApp/QSEQUOIA-2/releases/tag/v2026.01.07))
+👉 [download the plugin (release)](https://github.com/SequoiApp/QSEQUOIA-2/releases/tag/v2026.01.07)
 
 
 
