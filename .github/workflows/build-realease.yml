@@ -1,0 +1,43 @@
+name: Build and Release QGIS Plugin
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  build:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Qt tools (for pyrcc5)
+        run: sudo apt-get install -y qt5-default pyqt5-dev-tools
+
+      - name: Generate version number (date)
+        id: version
+        run: |
+          VERSION=$(date +'%Y.%m.%d')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Compile resources.qrc
+        run: |
+          cd qsequoia2
+          pyrcc5 -o resources.py resources.qrc
+
+      - name: Create plugin ZIP (only qsequoia2/)
+        run: |
+          zip -r QSEQUOIA2-${{ steps.version.outputs.version }}.zip qsequoia2
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: "QSEQUOIA2 ${{ steps.version.outputs.version }}"
+          files: QSEQUOIA2-${{ steps.version.outputs.version }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
