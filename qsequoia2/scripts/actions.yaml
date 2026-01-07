@@ -1,0 +1,16 @@
+actions:
+  "📝 Création dossier SIG":
+    module: "kartenn_pc.scripts.PY.create_SIG_folder"
+    function: "create_SIG_folder"
+
+  "📊 Test R":
+    module: "kartenn_pc.scripts.R.run_R"
+    function: "run_r_script"
+
+  "🌳Create Qfield project from PARCA or UA":
+    module: "kartenn_pc.scripts.PY.script_TERRAIN_POINT"
+    function: "create_terrain"
+
+  "🔧Classification des relevées":
+    module: "kartenn_pc.scripts.PY.records_orchestrator"
+    function: "records_orchestrator"
