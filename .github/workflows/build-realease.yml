@@ -16,7 +16,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Qt tools (for pyrcc5)
-        run: sudo apt-get install -y qt5-default pyqt5-dev-tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pyqt5-dev-tools
 
       - name: Generate version number (date)
         id: version
