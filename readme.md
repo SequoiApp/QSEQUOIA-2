@@ -57,5 +57,5 @@ pyrcc5 -o resources.py resources.qrc
 echo Compilation terminée
 pause
 
-
+ALB
 
