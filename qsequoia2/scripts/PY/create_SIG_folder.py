@@ -20,7 +20,7 @@ def create_SIG_folder(nom_projet, style_folder, parent_widget=None,log=None,dock
         return None
 
     # --- Création du dossier principal ---
-    chemin_complet = os.path.join(dossier_source, f"{nom_projet}_KARTENN_SIG")
+    chemin_complet = os.path.join(dossier_source, f"{nom_projet}_SIG")
     os.makedirs(chemin_complet, exist_ok=True)
     print(f"Création de l'arborescence dans : {chemin_complet}")
 

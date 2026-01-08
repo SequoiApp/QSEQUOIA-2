@@ -1,18 +1,16 @@
-QSEQUOIA2
 
+# Qsequoia2 <img src="qsequoia2/icon.png" align="right" height="138"/>
 
+<!-- badges: start -->
 📥 download the latest version
 
-
 👉 [download the plugin (release)](https://github.com/SequoiApp/QSEQUOIA-2/releases/tag/v2026.01.07)
+<!-- badges: end -->
 
 
 
-![Logo QSEQUOIA2](qsequoia2/icon.png)
 
-
-
-QSEQUOIA2 — Workflow Git & Build
+## QSEQUOIA2 — Workflow Git & Build
 
 Règles de contribution
 
@@ -30,9 +28,10 @@ Aucune action manuelle n’est nécessaire.
 Tester le plugin en local (Windows uniquement)
 
 Avant de commit, tester le plugin QGIS local.
+
 Script BATCH (Windows)
 
-
+```BATCH
 ###For local test
 
 @echo off
@@ -62,4 +61,7 @@ echo Compilation terminée
 pause
 
 ###ALB
+```
+
+
 

@@ -1,16 +1,36 @@
 actions:
   "📝 Création dossier SIG":
-    module: "kartenn_pc.scripts.PY.create_SIG_folder"
+    module: "QSEQUOIA-2.scripts.PY.create_SIG_folder"
     function: "create_SIG_folder"
+    skip_check: False
 
   "📊 Test R":
-    module: "kartenn_pc.scripts.R.run_R"
+    module: "QSEQUOIA-2.scripts.R.run_R"
     function: "run_r_script"
+    skip_check: False
 
   "🌳Create Qfield project from PARCA or UA":
-    module: "kartenn_pc.scripts.PY.script_TERRAIN_POINT"
+    module: "QSEQUOIA-2.scripts.PY.script_TERRAIN_POINT"
     function: "create_terrain"
+    skip_check: False
 
   "🔧Classification des relevées":
-    module: "kartenn_pc.scripts.PY.records_orchestrator"
+    module: "QSEQUOIA-2.scripts.PY.records_orchestrator"
     function: "records_orchestrator"
+    skip_check: False
+  
+  "🔧Carto-futaie":
+    module: "QSEQUOIA-2.scripts.utils.go_to_net"
+    function: "go_to_cartofutaie"
+    skip_check: True
+
+  "🔧Kartenn-IA":
+    module: "QSEQUOIA-2.scripts.utils.go_to_net"
+    function: "go_to_kartennAI"
+    skip_check: True
+
+  "🔧SequoiAPP":
+    module: "QSEQUOIA-2.scripts.utils.go_to_net"
+    function: "go_to_SequoiAPP"
+    skip_check: True
+
