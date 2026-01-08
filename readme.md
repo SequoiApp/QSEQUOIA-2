@@ -31,7 +31,7 @@ Tester le plugin en local (Windows uniquement)
 Avant de commit, tester le plugin QGIS local.
 Script BATCH (Windows)
 
-
+```BATCH
 ###For local test
 
 @echo off
@@ -61,6 +61,7 @@ echo Compilation terminée
 pause
 
 ###ALB
+```
 
 
 
