@@ -1,18 +1,17 @@
 QSEQUOIA2
 
 
+# Qsequoia2 <img src="qsequoia2_logo.png" align="right" height="138"/>
+
+<!-- badges: start -->
 📥 download the latest version
 
-
 👉 [download the plugin (release)](https://github.com/SequoiApp/QSEQUOIA-2/releases/tag/v2026.01.07)
+<!-- badges: end -->
 
 
 
-![Logo QSEQUOIA2](qsequoia2/icon.png)
-
-
-
-QSEQUOIA2 — Workflow Git & Build
+## QSEQUOIA2 — Workflow Git & Build
 
 Règles de contribution
 

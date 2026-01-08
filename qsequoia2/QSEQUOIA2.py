@@ -26,6 +26,7 @@ from .scripts.utils.get_download_folder import get_download_folder
 from .scripts.utils.extract_files import extract_files
 
 
+
 class QSEQUOIA2:
     """QGIS Plugin Implementation."""
 
@@ -60,10 +61,14 @@ class QSEQUOIA2:
         self.menu = self.tr(u'&QSEQUOIA2')
 
         # Trouver le chemins du dossier de téléchargement
-        self.watcher = None
+        self.updating_project_name = False
+
+
         self.current_project_name = None
         self.current_style_folder = None
-        self.watcher = None
+        self.watcher = QTimer()
+        self.watcher.timeout.connect(self.check_downloads)
+
         self.downloads_path = get_download_folder()
         print("Téléchargements :", self.downloads_path)
         self.connect_dialog = None
@@ -111,44 +116,7 @@ class QSEQUOIA2:
         status_tip=None,
         whats_this=None,
         parent=None):
-        """Add a toolbar icon to the toolbar.
 
-        :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
-        :type icon_path: str
-
-        :param text: Text that should be shown in menu items for this action.
-        :type text: str
-
-        :param callback: Function to be called when the action is triggered.
-        :type callback: function
-
-        :param enabled_flag: A flag indicating if the action should be enabled
-            by default. Defaults to True.
-        :type enabled_flag: bool
-
-        :param add_to_menu: Flag indicating whether the action should also
-            be added to the menu. Defaults to True.
-        :type add_to_menu: bool
-
-        :param add_to_toolbar: Flag indicating whether the action should also
-            be added to the toolbar. Defaults to True.
-        :type add_to_toolbar: bool
-
-        :param status_tip: Optional text to show in a popup when mouse pointer
-            hovers over the action.
-        :type status_tip: str
-
-        :param parent: Parent widget for the new action. Defaults None.
-        :type parent: QWidget
-
-        :param whats_this: Optional text to show in the status bar when the
-            mouse pointer hovers over the action.
-
-        :returns: The action that was created. Note that the action is also
-            added to self.actions list.
-        :rtype: QAction
-        """
 
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
@@ -252,12 +220,17 @@ class QSEQUOIA2:
 
             # nom du projet
 
-            self.dockwidget.project_name.setPlaceholderText("Nom du projet - ! idem CARTO-FUTAIE ou SEQUOIA!")
+            self.dockwidget.project_name.setPlaceholderText("Nom du projet - ! idem Rsequoia2 !")
             self.dockwidget.project_name.textChanged.connect(self.on_project_name_changed)
+
+
 
             #gestionnaire de style
 
             self.dockwidget.setstyle.clicked.connect(self.gest_style)
+
+            self.dockwidget.project_folder.clicked.connect(self.set_projectFolder)
+
 
 
 
@@ -293,18 +266,49 @@ class QSEQUOIA2:
         self.dockwidget.progress_bar.setValue(100)
         print("Traitement terminé")
 
+    def set_projectFolder(self):
+        path = QFileDialog.getExistingDirectory(self.dockwidget, "Select project Directory")
 
+        if not path:
+            print("No directory selected")
+            self.current_project_folder = None
+            self.current_project_name = None
+            return
 
+        print("Selected directory:", path)
+        self.current_project_folder = path
+
+        # extraction du nom du projet
+        project_name = path.split('/')[-1].split('_SIG')[0]
+
+        # empêcher tout signal parasite
+        self.dockwidget.project_name.blockSignals(True)
+        self.dockwidget.project_name.setText(project_name)
+        self.dockwidget.project_name.blockSignals(False)
+
+        self.current_project_name = project_name
+
+        # redémarrer le watcher
+        if self.watcher is not None:
+            self.restart_watcher()
+
+            print(f"Project name => {self.current_project_name}")
+
+    
     def on_project_name_changed(self, text):
+
+        # si le changement vient du code → on ignore
+        if self.updating_project_name:
+            return
+
         self.current_project_name = text
-        project_name = self.current_project_name
-        print(f"Nom du projet défini : {project_name}")
-        
-        if self.current_project_name:  # éviter de lancer sur vide
+        print(f"Nom du projet défini manuellement : {text}")
+
+        if text:  # éviter de lancer sur vide
             if self.watcher is not None:
                 self.restart_watcher()
             else:
-                self.start_watcher()
+                print("Watcher non initialisé, rien à redémarrer.")
 
 
 
@@ -316,6 +320,9 @@ class QSEQUOIA2:
         else:
             print("No directory selected")
             self.current_style_folder = None
+
+
+
     
     def open_connect_label(self):
         self.connect_dialog = connect_label(plugin=self)
@@ -326,7 +333,7 @@ class QSEQUOIA2:
             print("Nom de projet vide → surveillance impossible")
             return
 
-        print("Surveillance activée pour :", self.current_project_name)
+        print("\nSurveillance activée pour :", self.current_project_name)
 
         # Première exécution immédiate
         self.check_downloads()
@@ -336,7 +343,7 @@ class QSEQUOIA2:
 
     def stop_watcher(self):
         self.timer.stop()
-        print("Surveillance arrêtée")
+
 
 
     def restart_watcher(self):

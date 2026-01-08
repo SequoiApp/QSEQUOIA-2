@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>303</width>
+    <width>338</width>
     <height>616</height>
    </rect>
   </property>
@@ -30,7 +30,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>279</width>
+         <width>314</width>
          <height>566</height>
         </rect>
        </property>
@@ -113,9 +113,9 @@
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>100</y>
-          <width>271</width>
-          <height>241</height>
+          <y>110</y>
+          <width>281</width>
+          <height>231</height>
          </rect>
         </property>
         <property name="contextMenuPolicy">
@@ -135,7 +135,7 @@
          <rect>
           <x>10</x>
           <y>360</y>
-          <width>251</width>
+          <width>271</width>
           <height>23</height>
          </rect>
         </property>
@@ -148,7 +148,7 @@
          <rect>
           <x>10</x>
           <y>400</y>
-          <width>256</width>
+          <width>271</width>
           <height>161</height>
          </rect>
         </property>
@@ -169,6 +169,22 @@ p, li { white-space: pre-wrap; }
 &lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Puis cliquez sur la couche à traiter , et cliquez sur le traitement souhaité&lt;/p&gt;
 &lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;By Alexandre Le Bars, Matthieu Chevereau, Paul Carteron&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+       <widget class="QToolButton" name="project_folder">
+        <property name="geometry">
+         <rect>
+          <x>260</x>
+          <y>30</y>
+          <width>21</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="toolTip">
+         <string>Dossier du projet</string>
+        </property>
+        <property name="text">
+         <string>...</string>
         </property>
        </widget>
       </widget>
