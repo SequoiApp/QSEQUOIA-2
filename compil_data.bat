@@ -3,7 +3,7 @@
 REM === Définir les chemins ===
 ### Note: Please adjust the paths below to match your project and QGIS plugin directory ###
 set SRC_DIR="C:\Users\alexl\Desktop\sylviculture et GF\3.cartographie-SIG\Devellopement\QSEQUOIA2\qsequoia2"
-set DEST_DIR="C:\Users\alexl\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins\QSEQUOIA-2"
+set DEST_DIR="C:\Users\alexl\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins\qsequoia2"
 
 REM === Copier le dossier du projet ===
 echo Copie du projet en cours...
