@@ -67,88 +67,94 @@ class QSEQUOIA2DockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # Traitements bureautique
         # =========================
         bureautique = QTreeWidgetItem(tree)
-        bureautique.setText(0, "Traitements bureautique")
+        bureautique.setText(0, "Gestion de projets")
 
-        item = QTreeWidgetItem(bureautique)
-        item.setText(0, "📝 Création dossier SIG")
-        item.setToolTip(0, "Mise en forme du fichier excel issue du traitement UA vers SSPF")
+        data = [
+            ("📝 Création dossier SIG",
+             "Mise en forme du fichier excel issue du traitement UA vers SSPF"),
+            ("✒️ Rangement final des couches",
+             "Exporte les couches du projet courant en gpkg avec leurs styles")
+
+
+        ]
+        
+        for label, tooltip in data:
+            item = QTreeWidgetItem(bureautique)
+            item.setText(0, label)
+            item.setToolTip(0, tooltip)
 
         # =========================
         # Création cartographique
         # =========================
-        carto = QTreeWidgetItem(tree)
-        carto.setText(0, "Création cartographique")
+        utils = QTreeWidgetItem(tree)
+        utils.setText(0, "Utilitaire python")
 
         data = [
             ("🌳Create Qfield project from PARCA or UA",
-             "Crée un projet Qfield depuis le projet et la base de donnée"),
+             "Crée un projet Qfield depuis le projet"),
+
             ("🔧Classification des relevées",
              "Classe les relevées selon des paramètres définis"),
+
             ("🖥Qfield vers excel et UA",
              "Mise au propre des relevés réalisé sur le terrain vers un excel et un UA complet"),
+
             ("📑Classer les ame_type",
              "Sort un excel de stat de la couche"),
+
             ("🎄Ajouter la régé",
              "Ajoute la régé depuis la couche terrain_point"),
+
             ("0️⃣ Retirer les 0",
              "retire les 0 de sortie sur la couche SSPF et PARFOR"),
+
             ("🆗Remplacer le nom des champs",
              "Remplace le nom d'un champ"),
+
             ("📏symbologie finale",
              "ajoute les couches TSE_point, STR_point avec le style"),
+
+            ("📥Data IGN",
+             "Téléchargement de données IGN"),
+
+            ("🧳Reprojection d'un vecteur",
+             "Reprojection d'un vecteur selon un autre CRS"),
+
+            ("📏Détéction de la hauteur dominante",
+             "dans une couche, à partir d'un LIDAR, détéction des hauteurs dominantes depuis un MNH")
+            
+
         ]
 
         for label, tooltip in data:
-            item = QTreeWidgetItem(carto)
+            item = QTreeWidgetItem(utils)
             item.setText(0, label)
             item.setToolTip(0, tooltip)
 
         # =========================
-        # Cartographie environnementale
+        # Outils généraux
         # =========================
-        envi = QTreeWidgetItem(tree)
-        envi.setText(0, "Cartographie environnementale")
 
-        ua_vecteur = QTreeWidgetItem(envi)
-        ua_vecteur.setText(0, "UA vers fond vecteur")
+        net = QTreeWidgetItem(tree)
+        net.setText(0, "Outils en ligne")
 
         data = [
-            ("✒️Create_COM_line", "Génération des limites de communes"),
-            ("📍Create_TOPONY_point", "Intégre le nom des lieux-dits, communes et lieux d'intérets"),
-            ("🚘Create_ROAD_line",
-             "Création de la couche ROAD_line, avec le nom des routes et leurs classifications. source : BDTOPO IGN"),
-            ("🚘Create_HYDRO",
-             "création des couches Hydrologie contenant les plans d'eaux et rivières"),
-            ("🏫Create_URBAIN",
-             "Ajoute les couches batis, cimetières et aerodrome"),
-            ("🌲 🌳Create_VEGE",
-             "Intégration de la végétation et des peuplements alentours"),
-            ("🗺Create_TOT_ENVI",
-             "Permet en un appel d'éxécuter l'ensemble des fonctions ci dessus"),
+            ("🔧Kartenn-IA",
+             "Page de l'IA forestière Kartenn"),
+        
+            ("🔧Carto-futaie", 
+             "Page de Carto-Futaie"),
+
+            ("🔧SequoiAPP",
+             "Ouvre la page internet de SequoiAPP")
         ]
 
         for label, tooltip in data:
-            item = QTreeWidgetItem(ua_vecteur)
+            item = QTreeWidgetItem(net)
             item.setText(0, label)
             item.setToolTip(0, tooltip)
 
-        item = QTreeWidgetItem(envi)
-        item.setText(0, "🌿UA vers BDFORET")
-        item.setToolTip(0, "Ajoute la BD foret la plus récente pour l'emprise de l'UA")
 
-        # =========================
-        # Traitements cartographiques
-        # =========================
-        traitement = QTreeWidgetItem(tree)
-        traitement.setText(0, "Traitements cartographiques")
-
-        item = QTreeWidgetItem(traitement)
-        item.setText(0, "🧳Reprojection d'un vecteur")
-        item.setToolTip(0, "Reprojection d'un vecteur selon un autre CRS")
-
-        item = QTreeWidgetItem(traitement)
-        item.setText(0, "📥Data IGN")
-        item.setToolTip(0, "Téléchargement des bases de données de l'IGN")
 
         tree.expandAll()
 

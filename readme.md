@@ -1,10 +1,14 @@
 QSEQUOIA2
 
 
+📥 download the latest version
+
+
+👉 [download the plugin (release)](https://github.com/SequoiApp/QSEQUOIA-2/releases/tag/v2026.01.07)
 
 
 
-
+![Logo QSEQUOIA2](qsequoia2/icon.png)
 
 
 
@@ -56,6 +60,8 @@ pyrcc5 -o resources.py resources.qrc
 
 echo Compilation terminée
 pause
+
+###ALB
 
 
 

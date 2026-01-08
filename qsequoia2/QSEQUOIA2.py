@@ -357,7 +357,7 @@ class QSEQUOIA2:
 #-------------------------------------------------------------------------
 
 
-    # Fonction d'appel des fonctions externes python
+        # Fonction d'appel des fonctions externes python
 
     def call_functions(self, item, column):
 
@@ -365,54 +365,64 @@ class QSEQUOIA2:
         yaml_path = os.path.join(plugin_dir, "scripts", "actions.yaml")
 
         with open(yaml_path, "r", encoding="utf-8") as f:
-            action_config = yaml.safe_load(f)["actions"]      
+            action_config = yaml.safe_load(f)["actions"]
+
         project_name = getattr(self, "current_project_name", "DefaultProject")
-        style_folder = getattr(self, "current_style_folder",None)
+        style_folder = getattr(self, "current_style_folder", None)
         label = item.text(0)
-
-        #verifie si un nom de projet est donnée sinon : fenetre
-        if not project_name or project_name == "Nom du projet - doit être le même que CARTO FUTAIE ou RSEQUOIA" or project_name == "DefaultProject":
-            msg = QMessageBox(self.dockwidget)
-            msg.setWindowTitle("Nom absent")
-            msg.setText("Merci de renseigner le nom du projet.")
-            msg.setIcon(QMessageBox.Information)
-            msg.setStandardButtons(QMessageBox.Ok)
-            msg.exec_()
+        # --- Catégories globales : on ne fait rien ---
+        if label in ["Outils en ligne", "Utilitaire python", "Gestion de projets"]:
+            print(f"Clique sur un label de catégorie : {label}")
             return
-        
-        if not style_folder :
-            msg = QMessageBox(self.dockwidget)
-            msg.setWindowTitle("Kartenn")
-            msg.setText("pas de dossier de styles selectionné, veuillez cliquer sur 🔧.")
-            msg.setIcon(QMessageBox.Information)
-            msg.setStandardButtons(QMessageBox.Ok)
-            msg.exec_()
+
+        # --- Vérifie que le label existe ---
+        action = action_config.get(label)
+        if action is None:
+            unknown_data(parent=self.dockwidget)
             return
-        
 
-        # Vérifie si le label existe dans le YAML
-        if label in action_config: 
-            mod_name = action_config[label]["module"]
-            func_name = action_config[label]["function"]
-            print(f"Appel de la fonction {func_name} du module {mod_name}")
+        # --- Lecture du flag ---
+        skip_check = action.get("skip_check", False)
 
-            # Import dynamique
-            module = importlib.import_module(mod_name)
-            func = getattr(module, func_name)
+        # --- Vérifications ---
+        if not skip_check:
 
-            # Appel de la fonction avec dockwidget et project_name
-            func(project_name, style_folder, dockwidget=self.dockwidget, iface=self.iface)
+            if not project_name or project_name in [
+                "Nom du projet - doit être le même que CARTO FUTAIE ou RSEQUOIA",
+                "DefaultProject"
+            ]:
+                QMessageBox.information(
+                    self.dockwidget,
+                    "Nom absent",
+                    "Merci de renseigner le nom du projet."
+                )
+                return
 
-        elif item.text(0) in ["Traitements bureautique", "test du dev", "Création cartographique","Cartographie environnementale","UA vers fond vecteur", "Traitements cartographiques"]:
-            print(f"Clique sur un label de catégorie : {item.text(0)}")
+            if not style_folder:
+                QMessageBox.information(
+                    self.dockwidget,
+                    "Kartenn",
+                    "Pas de dossier de styles sélectionné, veuillez cliquer sur 🔧."
+                )
+                return
 
         else:
-            print(f"Aucune action définie pour le label")
-            unknown_data(parent=self.dockwidget)
+            # Neutralisation des valeurs manquantes
+            project_name = project_name or ""
+            style_folder = style_folder or ""
+
+        # --- Appel dynamique ---
+        mod_name = action["module"]
+        func_name = action["function"]
+        print(f"Appel de la fonction {func_name} du module {mod_name}")
+
+        module = importlib.import_module(mod_name)
+        func = getattr(module, func_name)
+
+        func(project_name, style_folder, dockwidget=self.dockwidget, iface=self.iface)
 
 
-
-    #appel des fonctions R
+        #appel des fonctions R
 
 
 
