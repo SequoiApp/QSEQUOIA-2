@@ -1,7 +1,5 @@
-QSEQUOIA2
 
-
-# Qsequoia2 <img src="qsequoia2_logo.png" align="right" height="138"/>
+# Qsequoia2 <img src="qsequoia2/icon.png" align="right" height="138"/>
 
 <!-- badges: start -->
 📥 download the latest version
@@ -29,6 +27,7 @@ Aucune action manuelle n’est nécessaire.
 Tester le plugin en local (Windows uniquement)
 
 Avant de commit, tester le plugin QGIS local.
+
 Script BATCH (Windows)
 
 ```BATCH
