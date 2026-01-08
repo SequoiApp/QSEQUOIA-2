@@ -38,11 +38,12 @@ jobs:
         run: |
           zip -r QSEQUOIA2-${{ steps.version.outputs.version }}.zip qsequoia2
 
-      - name: Create GitHub Release
+      - name: Create GitHub beta Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: "QSEQUOIA2 ${{ steps.version.outputs.version }}"
           files: QSEQUOIA2-${{ steps.version.outputs.version }}.zip
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
