@@ -4,7 +4,7 @@
 <!-- badges: start -->
 📥 download the latest version
 
-👉 [download the beta plugin version (release)](https://github.com/SequoiApp/QSEQUOIA-2/releases/latest)
+👉 [download the beta plugin version (release)](https://github.com/SequoiApp/QSEQUOIA-2/releases)
 <!-- badges: end -->
 
 
