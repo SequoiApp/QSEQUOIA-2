@@ -10,6 +10,23 @@
 
 
 
+## Comment Installer ?
+
+Après le téléchargement, tapez sur la touche 🪟, puis tapez : 
+```
+%appdata%
+```
+puis rendez-vous ici -> **"\QGIS\QGIS3\profiles\default\python\plugins"** 
+
+Copiez-y le dossier **qsequoia2**, relancez QGIS et activez le plugin dans la page des extensions installées.
+
+
+
+
+
+
+
+
 ## QSEQUOIA2 — Workflow Git & Build
 
 Règles de contribution
