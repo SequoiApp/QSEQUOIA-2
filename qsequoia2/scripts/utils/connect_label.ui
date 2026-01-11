@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>709</width>
-    <height>377</height>
+    <height>332</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Welcome !&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;To establish a connection, ensure you have a stable internet connection and your preferred online mapping tool is open.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Welcome !&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Watchdog manager: listens to the selected folder for adding layers&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
   <widget class="QGroupBox" name="groupBox">
@@ -35,7 +35,7 @@
      <x>30</x>
      <y>70</y>
      <width>651</width>
-     <height>241</height>
+     <height>211</height>
     </rect>
    </property>
    <property name="title">
@@ -51,14 +51,14 @@
      </rect>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;From your downloads folder&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#767676;&quot;&gt;From Carto-Futaie&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#5d5d5d;&quot;&gt;From RSequoia2&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;  From the auto mode&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;  From your downoload folder&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>20</y>
+      <y>50</y>
       <width>651</width>
       <height>61</height>
      </rect>
@@ -69,26 +69,13 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="down_path">
-     <property name="geometry">
-      <rect>
-       <x>270</x>
-       <y>20</y>
-       <width>191</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>t</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chk_listen">
+    <widget class="QRadioButton" name="radio_auto">
      <property name="geometry">
       <rect>
        <x>610</x>
        <y>20</y>
        <width>21</width>
-       <height>21</height>
+       <height>20</height>
       </rect>
      </property>
      <property name="text">
@@ -99,11 +86,11 @@
      </property>
     </widget>
    </widget>
-   <widget class="QFrame" name="frame_2">
+   <widget class="QFrame" name="frame_3">
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>90</y>
+      <y>140</y>
       <width>651</width>
       <height>61</height>
      </rect>
@@ -114,26 +101,13 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="label_4">
-     <property name="geometry">
-      <rect>
-       <x>270</x>
-       <y>20</y>
-       <width>191</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>indisponible pour le moment</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_2">
+    <widget class="QRadioButton" name="radio_downloads">
      <property name="geometry">
       <rect>
        <x>610</x>
        <y>20</y>
        <width>21</width>
-       <height>21</height>
+       <height>20</height>
       </rect>
      </property>
      <property name="text">
@@ -141,54 +115,25 @@
      </property>
     </widget>
    </widget>
-   <widget class="QFrame" name="frame_3">
+   <widget class="QLabel" name="down">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>160</y>
-      <width>651</width>
-      <height>61</height>
+      <x>150</x>
+      <y>30</y>
+      <width>501</width>
+      <height>20</height>
      </rect>
     </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
+    <property name="text">
+     <string>None</string>
     </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <widget class="QLabel" name="label_5">
-     <property name="geometry">
-      <rect>
-       <x>270</x>
-       <y>20</y>
-       <width>191</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>indisponible pour le moment</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_3">
-     <property name="geometry">
-      <rect>
-       <x>610</x>
-       <y>20</y>
-       <width>21</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
    </widget>
   </widget>
   <widget class="QPushButton" name="OK">
    <property name="geometry">
     <rect>
      <x>260</x>
-     <y>330</y>
+     <y>290</y>
      <width>181</width>
      <height>31</height>
     </rect>

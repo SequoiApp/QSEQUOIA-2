@@ -25,6 +25,20 @@ from .scripts.utils.get_download_folder import get_download_folder
 
 from .scripts.utils.extract_files import extract_files
 
+import sys
+
+plugin_path = os.path.dirname(__file__)
+watchdog_path = os.path.join(plugin_path, "watchdog_lib")
+
+if watchdog_path not in sys.path:
+    sys.path.insert(0, watchdog_path)
+
+from watchdog.observers import Observer
+
+from .scripts.utils.watchdog_handler import DownloadEventHandler
+
+
+
 
 
 class QSEQUOIA2:
@@ -63,9 +77,19 @@ class QSEQUOIA2:
         # Trouver le chemins du dossier de téléchargement
         self.updating_project_name = False
 
+        # Watchdog
+        self.watch_mode = "auto"
+        # valeurs possibles : "auto", "downloads", "project"
+
+
+        self.observer = None
+        self.watch_path = None
+
 
         self.current_project_name = None
         self.current_style_folder = None
+        self.current_project_folder = None
+
         self.watcher = QTimer()
         self.watcher.timeout.connect(self.check_downloads)
 
@@ -266,6 +290,7 @@ class QSEQUOIA2:
         self.dockwidget.progress_bar.setValue(100)
         print("Traitement terminé")
 
+
     def set_projectFolder(self):
         path = QFileDialog.getExistingDirectory(self.dockwidget, "Select project Directory")
 
@@ -279,7 +304,30 @@ class QSEQUOIA2:
         self.current_project_folder = path
 
         # extraction du nom du projet
-        project_name = path.split('/')[-1].split('_SIG')[0]
+
+        project_name = None
+
+        for root, dirs, files in os.walk(self.current_project_folder):
+            for filename in files:
+
+                if "_matrice" in filename:
+                    project_name = filename.split("_matrice")[0]
+                    break
+
+                if "_SEQ_PARCA_poly" in filename:
+                    project_name = filename.split("_SEQ_PARCA_poly")[0]
+                    break
+
+            if project_name:
+                break
+
+        # fallback si rien trouvé
+        if not project_name:
+            project_name = os.path.basename(self.current_project_folder).split("_SIG")[0]
+        if self.connect_dialog:
+            self.connect_dialog.update_watch_path_label()
+
+
 
         # empêcher tout signal parasite
         self.dockwidget.project_name.blockSignals(True)
@@ -287,6 +335,11 @@ class QSEQUOIA2:
         self.dockwidget.project_name.blockSignals(False)
 
         self.current_project_name = project_name
+
+        # mettre à jour l'UI de connect_label si elle est ouverte
+        if self.connect_dialog:
+            self.connect_dialog.update_watch_path_label()
+
 
         # redémarrer le watcher
         if self.watcher is not None:
@@ -328,21 +381,48 @@ class QSEQUOIA2:
         self.connect_dialog = connect_label(plugin=self)
         self.connect_dialog.show()
 
+
+
     def start_watcher(self):
         if not self.current_project_name:
-            print("Nom de projet vide → surveillance impossible")
+            print("[watchdog] Nom de projet vide → surveillance impossible")
             return
 
-        print("\nSurveillance activée pour :", self.current_project_name)
+        # 🔁 choix du dossier selon le mode
+        if self.watch_mode == "downloads":
+            watch_path = self.downloads_path
+            print("[watchdog] Mode manuel → Téléchargements")
 
-        # Première exécution immédiate
-        self.check_downloads()
+        elif self.watch_mode == "project":
+            if not self.current_project_folder:
+                print("[watchdog] Mode projet sélectionné mais aucun dossier projet")
+                return
+            watch_path = self.current_project_folder
+            print("[watchdog] Mode manuel → Dossier projet")
 
-        # Puis toutes les secondes
-        self.timer.start(1000)
+        else:  # mode AUTO
+            if self.current_project_folder:
+                watch_path = self.current_project_folder
+                print("[watchdog] Mode auto → Dossier projet")
+            else:
+                watch_path = self.downloads_path
+                print("[watchdog] Mode auto → Téléchargements")
+
+        self.stop_watcher()
+
+        event_handler = DownloadEventHandler(self)
+        self.observer = Observer()
+        self.observer.schedule(event_handler, watch_path, recursive=False)
+        self.observer.start()
+
+        self.watch_path = watch_path
 
     def stop_watcher(self):
-        self.timer.stop()
+        if hasattr(self, "observer") and self.observer:
+            self.observer.stop()
+            self.observer.join()
+            print("[watchdog] Surveillance arrêtée")
+            self.observer = None
 
 
 
@@ -355,8 +435,9 @@ class QSEQUOIA2:
         extract_files(
             downloads_path=self.downloads_path,
             project_name=self.current_project_name,
-            style_folder = self.current_style_folder
-        )
+            style_folder = self.current_style_folder,
+            project_folder = self.current_project_folder
+            )
 
 
 #-------------------------------------------------------------------------
