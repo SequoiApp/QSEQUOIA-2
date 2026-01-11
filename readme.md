@@ -1,4 +1,5 @@
 
+
 # Qsequoia2 <img src="qsequoia2/icon.png" align="right" height="138"/>
 
 <!-- badges: start -->
@@ -6,6 +7,23 @@
 
 👉 [download the beta plugin version (release)](https://github.com/SequoiApp/QSEQUOIA-2/releases)
 <!-- badges: end -->
+
+
+
+
+## Comment Installer ?
+
+Après le téléchargement, tapez sur la touche 🪟, puis tapez : 
+```
+%appdata%
+```
+puis rendez-vous ici -> **"\QGIS\QGIS3\profiles\default\python\plugins"** 
+
+Copiez-y le dossier **qsequoia2**, relancez QGIS et activez le plugin dans la page des extensions installées.
+
+
+
+
 
 
 
@@ -62,6 +80,9 @@ pause
 
 ###ALB
 ```
+
+
+
 
 
 

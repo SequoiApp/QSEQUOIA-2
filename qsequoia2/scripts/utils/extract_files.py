@@ -16,8 +16,11 @@ import os, time, shutil
 
 from .add_layers import add_layers
 
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
-def extract_files(downloads_path, project_name, style_folder) :
+
+def extract_files(downloads_path, project_name, style_folder,project_folder) :
 
     #---------------------------------------
 
@@ -44,10 +47,15 @@ def extract_files(downloads_path, project_name, style_folder) :
                 continue  # on attend le prochain cycle
 
             # --- Extraction dans dossier temporaire ---
-            temp_folder = os.path.join(downloads_path, f"{project_name}_TEMPO_output")
+            if project_folder == None :
+                temp_folder = os.path.join(downloads_path, f"{project_name}_CF_output")
+
+            else : 
+                temp_folder = os.path.join(project_folder, f"{project_name}_CF_output")
 
             if os.path.exists(temp_folder):
                 return
+            
 
             os.makedirs(temp_folder, exist_ok=True)
             print(f"\nExtract_files indique => dossier tempo == {temp_folder}")
@@ -57,7 +65,8 @@ def extract_files(downloads_path, project_name, style_folder) :
 
             # appel de la fonction d'ajout des couches : 
 
-            add_layers(project_name, temp_folder, style_folder)
+
+            add_layers(project_name, temp_folder, style_folder, project_folder)
 
 
 
@@ -66,6 +75,10 @@ def extract_files(downloads_path, project_name, style_folder) :
 
     # Si on sort de la boucle sans avoir trouvé de ZIP valide
     return
+
+
+
+
 
 
 

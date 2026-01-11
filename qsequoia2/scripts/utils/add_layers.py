@@ -6,15 +6,15 @@
 from qgis.core import QgsVectorLayer, QgsProject
 import os
 
-def add_layers(project_name, temp_folder, style_folder):
+def add_layers(project_name, temp_folder, style_folder, project_folder):
 
     # Liste des types de couches : 
     ext = [".shp",".gpkg",".geojson"]
 
     # Liste des styles disponibles
-    style_files = [f for f in os.listdir(style_folder) if f.lower().endswith(".qml")]
+    style_files = [f for f in os.listdir(temp_folder) if f.lower().endswith(".qml")]
 
-    for layer_file in os.listdir(temp_folder):
+    for layer_file in os.listdir(project_folder):
 
         _, extension = os.path.splitext(layer_file.lower())
         if extension not in ext:
