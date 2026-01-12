@@ -25,10 +25,15 @@
 import os
 
 from qgis.PyQt import QtGui, QtWidgets, uic
+from PyQt5.QtWidgets import QWidget
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtWidgets import QTreeWidgetItem
 from PyQt5.QtGui import QIcon
+
+from qsequoia2.scripts.forest_settings.forest_settings_dialog import Ui_ForestSettingsDialog
+from qsequoia2.scripts.project_settings.project_settings_dialog import Ui_ProjectSettingsDialog
+from qsequoia2.scripts.WMS_settings.WMS_settings_dialog import Ui_WMSSettingsDialog
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'QSEQUOIA2_dockwidget_base.ui'))
@@ -55,6 +60,38 @@ class QSEQUOIA2DockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         # définit l’icône du dockwidget
         self.setWindowIcon(QIcon(logo_path))
+
+
+        # Créer les widgets pour les onglets existants
+        #self.tools_tab = QWidget()
+        #self.tools_ui = Ui_QSEQUOIA2DockWidget()
+        #self.tools_ui.setupUi(self.tools_tab)
+
+        project_settings_tab = QWidget()
+        self.project_settings_ui = Ui_ProjectSettingsDialog()
+        self.project_settings_ui.setupUi(project_settings_tab)
+
+        forest_settings_tab = QWidget()
+        self.forest_settings_ui = Ui_ForestSettingsDialog()
+        self.forest_settings_ui.setupUi(forest_settings_tab)
+
+        WMS_settings_tab = QWidget()
+        self.WMS_settings_ui = Ui_WMSSettingsDialog()
+        self.WMS_settings_ui.setupUi(WMS_settings_tab)
+
+
+        # Ajouter les onglets + icons au QTabWidget
+
+        plugin_path = os.path.dirname(__file__)
+        #self.tabWidget.addTab(self.tools_tab, QIcon(plugin_path + "/icons/tools_settings.svg"),"")
+        self.tabWidget.setTabToolTip(0, "Outils et fonctions")
+        self.tabWidget.addTab(project_settings_tab, QIcon(plugin_path + "/icons/project_settings.svg"),"")
+        self.tabWidget.setTabToolTip(1, "Paramètres du projet")
+        self.tabWidget.addTab(forest_settings_tab, QIcon(plugin_path + "/icons/forest_settings.svg"),"")
+        self.tabWidget.setTabToolTip(2, "Paramètres forestiers")
+        self.tabWidget.addTab(WMS_settings_tab, QIcon(plugin_path + "/icons/WMS_settings.svg"),"")
+        self.tabWidget.setTabToolTip(3, "Paramètres WMS")
+
 
 
 
@@ -162,3 +199,7 @@ class QSEQUOIA2DockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
+
+    
+
+

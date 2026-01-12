@@ -5,6 +5,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.core import QgsApplication, Qgis
 from qgis.PyQt.QtWidgets import QMessageBox,QFileDialog
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QTimer
 import yaml, timer
 
@@ -231,6 +232,29 @@ class QSEQUOIA2:
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
 
+            # icon du main
+            icon_path = os.path.join(plugin_path, "icon.png")
+             
+            pixmap = QPixmap(icon_path)
+
+            self.dockwidget.icon.setPixmap(pixmap)
+            self.dockwidget.icon.setScaledContents(True)
+            self.dockwidget.icon.setFixedSize(128, 128)
+
+            # bouttons d'ajout de couches
+
+            self.dockwidget.add_layers.clicked.connect(self.non_implemented_yet)
+            self.dockwidget.add_layers.setIcon(QIcon(plugin_path + "/icons/add_data.svg"))
+
+                                
+
+
+            # icons des onglets
+            
+            self.dockwidget.tabWidget.setTabIcon(0, QIcon(plugin_path + "/icons/tools_settings.svg"))
+
+
+
             # show the dockwidget
 
             self.dockwidget.progressBar.setValue(10)
@@ -249,9 +273,10 @@ class QSEQUOIA2:
 
 
 
-            #gestionnaire de style
+            #global settings button
 
             self.dockwidget.setstyle.clicked.connect(self.gest_style)
+            self.dockwidget.setstyle.setIcon(QIcon(plugin_path + "/icons/global_settings.svg"))
 
             self.dockwidget.project_folder.clicked.connect(self.set_projectFolder)
 
@@ -261,7 +286,8 @@ class QSEQUOIA2:
 
             # gestionnaire de connexion
 
-            self.dockwidget.btn_connect.clicked.connect(self.open_connect_label)
+            self.dockwidget.watchdog.clicked.connect(self.open_connect_label)
+            self.dockwidget.watchdog.setIcon(QIcon(plugin_path + "/icons/watchdog_settings.svg"))
 
             #Appel des process
 
@@ -272,6 +298,13 @@ class QSEQUOIA2:
             # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
+
+    def non_implemented_yet(self):
+        QMessageBox.information(
+            self.dockwidget,
+            "Non implémenté",
+            "Cette fonctionnalité n'est pas encore implémentée."
+        )
 
 
     def run_process(self):
@@ -376,11 +409,13 @@ class QSEQUOIA2:
 
 
 
-    
+    def open_global_settings(self):
+        self.global_settings_dialog = global_settings(plugin=self)
+        self.global_settings_dialog.show()
+        
     def open_connect_label(self):
         self.connect_dialog = connect_label(plugin=self)
         self.connect_dialog.show()
-
 
 
     def start_watcher(self):
@@ -436,7 +471,8 @@ class QSEQUOIA2:
             downloads_path=self.downloads_path,
             project_name=self.current_project_name,
             style_folder = self.current_style_folder,
-            project_folder = self.current_project_folder
+            project_folder = self.current_project_folder,
+
             )
 
 
