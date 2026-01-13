@@ -29,6 +29,8 @@ from .scripts.utils.get_download_folder import get_download_folder
 
 from .scripts.utils.extract_files import extract_files
 
+from .scripts.utils.add_seq_config import add_seq_config
+
 import sys
 
 plugin_path = os.path.dirname(__file__)
@@ -40,6 +42,7 @@ if watchdog_path not in sys.path:
 from watchdog.observers import Observer
 
 from .scripts.utils.watchdog_handler import DownloadEventHandler
+
 
 
 
@@ -95,6 +98,9 @@ class QSEQUOIA2:
 
 
         self.current_project_name = None
+
+        print(" \nDownoload the last version of Rsequoia2 config files…")
+        add_seq_config()
 
         self.user_name = get_global_variable("user_full_name") or "Utilisateur QSEQUOIA2"
         print(" \nWelcome ! ", self.user_name)

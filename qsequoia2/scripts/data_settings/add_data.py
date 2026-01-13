@@ -3,7 +3,7 @@ from .add_data_dialog import Ui_AddDataDialog
 from itertools import chain
 
 # Import from utils folder
-from ...utils.layers import *
+from ..utils.layers import *
 
 class AddDataDialog(QDialog):
     def __init__(self, iface, parent=None):
