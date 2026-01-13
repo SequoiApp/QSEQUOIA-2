@@ -9,6 +9,9 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QTimer
 import yaml, timer
 
+from qsequoia2.scripts.global_settings.global_settings import GlobalSettingsDialog
+from qsequoia2.scripts.utils.variable import get_global_variable
+
 
 
 from .resources import *
@@ -59,12 +62,16 @@ class QSEQUOIA2:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
+
         # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
+        locale_value = QSettings().value('locale/userLocale', 'en')
+        locale = str(locale_value)[:2]
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
-            'QSEQUOIA2_{}.qm'.format(locale))
+            f'QSEQUOIA2_{locale}.qm'
+        )
+
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
@@ -88,7 +95,12 @@ class QSEQUOIA2:
 
 
         self.current_project_name = None
-        self.current_style_folder = None
+
+        self.user_name = get_global_variable("user_full_name") or "Utilisateur QSEQUOIA2"
+        print(" \nWelcome ! ", self.user_name)
+
+        self.current_style_folder = get_global_variable("styles_directory") or None
+        print(" \n==> Style folder at init:", self.current_style_folder)
         self.current_project_folder = None
 
         self.watcher = QTimer()
@@ -272,7 +284,7 @@ class QSEQUOIA2:
 
             #global settings button
 
-            self.dockwidget.setstyle.clicked.connect(self.gest_style)
+            self.dockwidget.setstyle.clicked.connect(self.open_global_settings)
             self.dockwidget.setstyle.setIcon(QIcon(plugin_path + "/icons/global_settings.svg"))
 
             self.dockwidget.project_folder.clicked.connect(self.set_projectFolder)
@@ -434,8 +446,9 @@ class QSEQUOIA2:
 
 
     def open_global_settings(self):
-        self.global_settings_dialog = global_settings(plugin=self)
+        self.global_settings_dialog = GlobalSettingsDialog(plugin=self)
         self.global_settings_dialog.show()
+
         
     def open_connect_label(self):
         self.connect_dialog = connect_label(plugin=self)

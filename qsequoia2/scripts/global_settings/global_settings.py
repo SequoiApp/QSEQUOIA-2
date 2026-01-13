@@ -1,28 +1,28 @@
+# -*- coding: utf-8 -*-
+
+
 
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog
 
 from .global_settings_dialog import Ui_GlobalSettingsDialog
+from qgis.core import QgsProject
+from pathlib import Path
 
 import yaml
 
 # Import from utils folder
-from ...utils.variable import get_global_variable, set_global_variable
-from ...utils.config import get_config_path
+from ..utils.variable import get_global_variable, set_global_variable
 
 
-_agence_config_path = get_config_path("agences.yaml")
-with open(_agence_config_path, "r", encoding="utf-8") as f:
-    _agence_config = yaml.safe_load(f)['agences']
+
+
 
 class GlobalSettingsDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, plugin, parent=None):
         super().__init__(parent)
         self.ui = Ui_GlobalSettingsDialog()
         self.ui.setupUi(self)
-        
-        # Liste des agences possibles
-        self.agences = list(_agence_config.keys())
-        self.ui.combobox_agence.addItems(self.agences)
+        self.plugin = plugin
         
         # Charger les paramètres existants
         self.load_settings()
@@ -33,12 +33,6 @@ class GlobalSettingsDialog(QDialog):
         self.ui.modelsButton.clicked.connect(self.select_models_directory)
 
     def load_settings(self):
-        # Agence
-        agence = get_global_variable("user_office_name")
-        if agence in self.agences:
-            self.ui.combobox_agence.setCurrentText(agence) # Sélectionner l'agence si elle existe dans la liste
-        else:
-            self.ui.combobox_agence.setCurrentIndex(-1)  # Aucun choix par défaut
         
         # Répertoire de styles
         styles_dir = get_global_variable("styles_directory") or ""
@@ -54,32 +48,18 @@ class GlobalSettingsDialog(QDialog):
 
     def save_settings(self):
         # Récupère les paramètres
-        agence = self.ui.combobox_agence.currentText()
+
         styles_dir = self.ui.stylesInput.text()
         models_dir = self.ui.modelsInput.text()
         user = self.ui.userInput.text()
         
-        # Sauvegarder les paramètres
-        set_global_variable("user_office_name", agence)
+
         set_global_variable("styles_directory", styles_dir)
         set_global_variable("models_directory", models_dir)
         set_global_variable("user_full_name", user)
         
-        # Créer et sauvegarder la variable user_office_full_name
-        self.set_forest_office(agence)
-        
-    def set_forest_office(self, agence):
-        agence = _agence_config.get(agence, {})
-        parts = [
-            agence.get("nom", ""),
-            agence.get("adresse", ""),
-            agence.get("numero", ""),
-            agence.get("mail", ""),
-            agence.get("site", ""),
-        ]
-        user_office_full_name = "\n".join(p for p in parts if p)
-        set_global_variable("user_office_full_name", user_office_full_name)
-        
+
+
     def select_styles_directory(self):
         modeles_path = QgsProject.instance().homePath() or str(Path.home())
 
