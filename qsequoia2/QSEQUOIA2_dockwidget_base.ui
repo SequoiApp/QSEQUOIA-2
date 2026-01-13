@@ -75,7 +75,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="project_name">
+               <widget class="QLineEdit" name="name">
                 <property name="font">
                  <font>
                   <pointsize>8</pointsize>
@@ -153,37 +153,8 @@
             <enum>QTabWidget::West</enum>
            </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>-1</number>
            </property>
-           <widget class="QWidget" name="outils">
-            <attribute name="title">
-             <string/>
-            </attribute>
-            <attribute name="toolTip">
-             <string>Outils divers</string>
-            </attribute>
-            <widget class="QTreeWidget" name="functionsLibrary">
-             <property name="geometry">
-              <rect>
-               <x>-2</x>
-               <y>-5</y>
-               <width>531</width>
-               <height>421</height>
-              </rect>
-             </property>
-             <property name="contextMenuPolicy">
-              <enum>Qt::PreventContextMenu</enum>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fonctions&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <column>
-              <property name="text">
-               <string>Outils</string>
-              </property>
-             </column>
-            </widget>
-           </widget>
           </widget>
          </item>
         </layout>
