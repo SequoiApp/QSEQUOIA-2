@@ -18,7 +18,7 @@ def get_config_path(filename: str) -> Path:
     """
     Returns the full path to a file under the plugin's 'config' folder.
     """
-    return get_plugin_root() / "config" / filename
+    return get_plugin_root() / ".." / "inst" / filename
 
 # endregion
 
@@ -115,19 +115,26 @@ def get_project(folder: str = "output_folder"):
 # region WMTS
 
 def get_wmts(logical_key):
-    wmts_config_path = get_config_path("wmts.yaml")
+    wmts_config_path = get_config_path("qseq_URLS.yaml")
     with open(wmts_config_path, "r", encoding="utf-8") as f:
         wmts_config = yaml.safe_load(f)
-    
-    entry = wmts_config.get("wmts", {}).get(logical_key)
-    if not entry:
-        raise KeyError(f"No WMTS config for key {logical_key}")
 
-    # Extract the two fields
-    display_name = entry.get("display_name")
-    url = entry.get("url")
+    wmts_entries = wmts_config.get("wmts", {})
 
-    return display_name, url
+    # 1) Recherche directe par clé YAML
+    entry = wmts_entries.get(logical_key)
+    if entry:
+        return entry.get("display_name"), entry.get("url")
+
+    # 2) Recherche par display_name
+    for key, data in wmts_entries.items():
+        if data.get("display_name") == logical_key:
+            return data.get("display_name"), data.get("url")
+
+    # 3) Rien trouvé → erreur propre
+    raise KeyError(f"No WMTS config for key or display_name '{logical_key}'")
+
+
 
 # endregion
 

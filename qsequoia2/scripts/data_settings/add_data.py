@@ -1,148 +1,226 @@
-from PyQt5.QtWidgets import QDialog
+import importlib
+from PyQt5.QtWidgets import QDialog, QMessageBox
+from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QTreeWidget, QTreeWidgetItem
+import os
+import yaml
+
+from qsequoia2.scripts.tools_settings.PY.unload import unknown_data
+
 from .add_data_dialog import Ui_AddDataDialog
 from itertools import chain
 
+
 # Import from utils folder
 from ..utils.layers import *
+from qsequoia2.scripts.utils.layers import *
 
 class AddDataDialog(QDialog):
-    def __init__(self, iface, parent=None):
+    def __init__(self, current_project_name, current_style_folder, downloads_path, current_project_folder, iface, parent=None):
         super().__init__(parent)
         self.iface = iface
+        self.current_project_name = current_project_name
+        self.current_style_folder = current_style_folder
+        self.downloads_path = downloads_path
+        self.current_project_folder = current_project_folder
+
         self.ui = Ui_AddDataDialog()
         self.ui.setupUi(self)
+        self.add_tree_tab()
+        self.dock = parent
 
-        self.SEQUOIA_CHECKBOX_KEY_MAP = {
-            self.ui.cb_vector_parca: ['parca_polygon'],
-            self.ui.cb_vector_ua: ['ua_polygon', 'ua_polygon_plt', 'ua_polygon_occup', 'ua_polygon_ame'],
-            self.ui.cb_vector_sspf: ['sspf_polygon', 'sspf_polygon_plt'],
-            self.ui.cb_vector_pf: ['pf_polygon', 'pf_line']
-        }
 
-        self.VECTOR_CHECKBOX_KEY_MAP = {
-            self.ui.cb_vector_route: ['route_polygon', 'route_line'],
-            self.ui.cb_vector_topo: ['topo_line'],
-        }
+        # Connexion des signaux après setupUi
+        self.treeVECTOR.itemClicked.connect(self.on_item_clicked)
+        self.treeRASTOR.itemClicked.connect(self.on_item_clicked)
+        self.treeHECTOR.itemClicked.connect(self.on_item_clicked)
+        self.treeCASTOR.itemClicked.connect(self.on_item_clicked)
+        # etc.
 
-        self.RASTER_CHECKBOX_KEY_MAP = {
-            self.ui.cb_raster_plt: "plt",
-            self.ui.cb_raster_plt_anc: "plt_anc",
-            self.ui.cb_raster_irc: "irc",
-            self.ui.cb_raster_rgb: "rgb",
-            self.ui.cb_raster_mnh: "mnh",
-            self.ui.cb_raster_mnt: "mnt",
-            self.ui.cb_raster_scan25: "scan25",
-        }
 
-        self.WMTS_CHECKBOX_KEY_MAP = {
-            # SCAN
-            self.ui.cb_wmts_scan100: "wmts_scan1000",
-            self.ui.cb_wmts_scan1000: "wmts_scan100",
-            self.ui.cb_wmts_scan25: "wmts_scan25",
-            self.ui.cb_wmts_scan25_grey: "wmts_scan25_grey",
-            # ORTHO
-            self.ui.cb_wmts_irc: "wmts_irc",
-            self.ui.cb_wmts_rgb: "wmts_rgb",
-            self.ui.cb_wmts_spot_2023: "wmts_spot_2023",
-            # LIDAR
-            self.ui.cb_wmts_lidar_mnt: "wmts_lidar_mnt",
-            self.ui.cb_wmts_lidar_mnh: "wmts_lidar_mnh",
-            # ORTHOHISTO
-            self.ui.cb_wmts_histo_1950: "wmts_histo_1950",
-            self.ui.cb_wmts_histo_1965: "wmts_histo_1965",
-            self.ui.cb_wmts_histo_1980: "wmts_histo_1980",
-            self.ui.cb_wmts_histo_2000: "wmts_histo_2000", 
-            self.ui.cb_wmts_histo_2006: "wmts_histo_2006",
-            self.ui.cb_wmts_histo_2011: "wmts_histo_2011",
-            # AUTRES
-            self.ui.cb_wmts_geol: "wmts_geol",
-            self.ui.cb_wmts_pci: "wmts_pci",
-        }
+
+    def add_tree_tab(self):
+
+        # Widget Vecteurs 
+
+        # 1) Créer le widget qui servira d'onglet
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+
+        # 2) Créer le QTreeWidget
+        self.treeVECTOR = QTreeWidget()
+        self.treeVECTOR.setObjectName("treeVECTOR")
+        self.treeVECTOR.setHeaderLabels(["Vecteurs disponibles"])
+
+        # 3) ajout des items en lisant le yaml
+        script_dir = os.path.dirname(__file__)
+        yaml_path = os.path.join(script_dir, "..","..","inst","seq_layers.yaml")
+
+        with open(yaml_path, 'r', encoding='utf-8') as file:
+            data = yaml.safe_load(file)
+
+            categories = {}
+
+            for key, entry in data.items():
+                name = entry.get('name', "")
+                ext = entry.get('ext', "")
+
+                # On ne garde que geojson
+                if ext != "geojson":
+                    continue
+
+                category_name = name.split("_")[0] if "_" in name else name
+
+                if category_name not in categories:
+                    cat_item = QTreeWidgetItem([category_name])
+                    self.treeVECTOR.addTopLevelItem(cat_item)
+                    categories[category_name] = cat_item
+
+                # Ajout de l’élément dans la catégorie
+                QTreeWidgetItem(categories[category_name], [name, ext])
+
+
+        # 4) Ajouter le tree dans le layout
+        layout.addWidget(self.treeVECTOR)
+
+        # 5) Ajouter l’onglet au TabWidget
+        self.ui.tabWidget.addTab(tab, "VECTEURS")
+
+        # Widget Rasters
+
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        self.treeRASTOR = QTreeWidget()
+        self.treeRASTOR.setObjectName("treeRASTOR")
+        self.treeRASTOR.setHeaderLabels(["Rasters disponibles"])
+
+        with open(yaml_path, 'r', encoding='utf-8') as file:
+            data = yaml.safe_load(file)
+
+            categories = {}
+
+            for key, entry in data.items():
+                name = entry.get('name', "")
+                ext = entry.get('ext', "")
+
+                # On ne garde que tiff
+                if ext != "tif":
+                    continue
+
+                category_name = ext
+
+                if category_name not in categories:
+                    cat_item = QTreeWidgetItem([category_name])
+                    self.treeRASTOR.addTopLevelItem(cat_item)
+                    categories[category_name] = cat_item
+
+                # Ajout de l’élément dans la catégorie
+                QTreeWidgetItem(categories[category_name], [name, ext])
+
+        layout.addWidget(self.treeRASTOR)
+        self.ui.tabWidget.addTab(tab, "RASTERS")
+
+        # Widget Services Web
+
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        self.treeHECTOR = QTreeWidget()
+        self.treeHECTOR.setObjectName("treeHECTOR")
+        self.treeHECTOR.setHeaderLabels(["Services Web disponibles"])
+
+        yaml_path = os.path.join(script_dir, "..","..","inst","qseq_URLS.yaml")
+        with open(yaml_path, 'r', encoding='utf-8') as file:
+            WMS_data = yaml.safe_load(file)
+
+            categories = {}
+
+            for key, entry in WMS_data["wmts"].items():
+                name = entry.get("display_name", "")
+                url = entry.get("url", "")
+
+                suffix = key.replace("wmts_", "", 1)
+
+                # On prend le premier segment : "scan1000" → "scan"
+                category_name = suffix.split("_")[0]
+
+
+                if category_name not in categories:
+                    cat_item = QTreeWidgetItem([category_name])
+                    self.treeHECTOR.addTopLevelItem(cat_item)
+                    categories[category_name] = cat_item
+
+                # Ajout de l’élément dans la catégorie
+                QTreeWidgetItem(categories[category_name], [name, url])
+
+
+
+        layout.addWidget(self.treeHECTOR)
+        self.ui.tabWidget.addTab(tab, "WMS/WFS")
+
+        # Widget Bases de Données
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        self.treeCASTOR = QTreeWidget()
+        self.treeCASTOR.setHeaderLabels(["Bases de Données disponibles"])
+        # (code to read YAML and populate tree would go here)
+        layout.addWidget(self.treeCASTOR)
+        self.ui.tabWidget.addTab(tab, "BASES DE DONNÉES")
+
+    # quand on clique sur un bouton des arborescences la couche est ajoutée au projet
+
         
-        self.TERRAIN_CHECKBOX_KEY_MAP = {
-            self.ui.cb_terrain_expertise: "expertise_gpkg",
-            self.ui.cb_terrain_inventaire: "inventaire",
-            self.ui.cb_terrain_diag: "diag",
-        }
+    def on_item_clicked(self, item, column):
+        tree = self.sender()  # QTreeWidget qui a émis le signal
+        label = item.text(0)
 
-        self._all_checkbox_maps = (
-            self.SEQUOIA_CHECKBOX_KEY_MAP,
-            self.VECTOR_CHECKBOX_KEY_MAP,
-            self.RASTER_CHECKBOX_KEY_MAP,
-            self.WMTS_CHECKBOX_KEY_MAP,
-            self.TERRAIN_CHECKBOX_KEY_MAP,
-        )
-    
-    def _reset_checkboxes(self):
-        """Uncheck every checkbox in all our maps."""
-        for chk in chain.from_iterable(m.keys() for m in self._all_checkbox_maps):
-            chk.setChecked(False)
-    
-    def _add_sequoia(self):
-        # flatten list of list
-        sequoia_keys = [
-            key
-            for cb, key_list in self.SEQUOIA_CHECKBOX_KEY_MAP.items() if cb.isChecked()
-            for key in key_list
-        ]
-        if sequoia_keys:
-            load_vectors(*sequoia_keys, group_name="SEQUOIA")
+        print(f"Clic sur '{label}' depuis l’arbre : {tree.objectName()}")
 
-    def _add_vector(self):
-        # flatten list of list
-        vector_keys = [
-            key
-            for cb, key_list in self.VECTOR_CHECKBOX_KEY_MAP.items() if cb.isChecked()
-            for key in key_list
-        ]
-        if vector_keys:
-            load_vectors(*vector_keys, group_name="VECTEUR")
+        self.whats_layers(item, label, column)
 
-    def _add_raster(self):
-        raster_keys = [key for cb, key in self.RASTER_CHECKBOX_KEY_MAP.items() if cb.isChecked()]
 
-        # Handle PLT_ANC separately
-        if "plt_anc" in raster_keys:
-            folder = get_path("raster_folder")
-            plt_anc_rasters = [p for p in folder.glob("*.tif") if "PLT_ANC" in p.name.upper()]
+    def whats_layers(self, item, label, column):
 
-            if len(plt_anc_rasters) > 1:
-                root = QgsProject.instance().layerTreeRoot()
-                group = root.findGroup("RASTER") or root.addGroup("RASTER")
 
-                for path in plt_anc_rasters:
-                    layer = QgsRasterLayer(str(path), path.stem)
-                    if layer.isValid():
-                        QgsProject.instance().addMapLayer(layer, False)
-                        group.addLayer(layer)
 
-                # Remove plt_anc from keys so load_rasters doesn't load it again
-                raster_keys.remove("plt_anc")
+        print( f"test du nom de projet dans add_data.py __init__ : {self.current_project_name}" )
 
-        # Load other rasters normally
-        if raster_keys:
-            load_rasters(*raster_keys, group_name="RASTER")
 
-    def _add_wms(self):
-        # flatten list of list
-        wmts_keys = [key for cb, key in self.WMTS_CHECKBOX_KEY_MAP.items() if cb.isChecked()]
-        if wmts_keys:
-            load_wmts(*wmts_keys, group_name="WMTS")
+        print(f"Clic sur l'item : {label}")
 
-    def _add_terrain(self):
-        # flatten list of list
-        gpkg_keys = [key for cb, key in self.TERRAIN_CHECKBOX_KEY_MAP.items() if cb.isChecked()]
-        if gpkg_keys:
-            [load_gpkg(get_path(key), group_name="TERRAIN") for key in gpkg_keys]
 
-    def accept(self):
 
-        self._add_sequoia()
-        self._add_vector()
-        self._add_raster()
-        self._add_wms()
-        self._add_terrain()
-        
-        self._reset_checkboxes()
+        # --- Détection automatique des sections (items parents) ---
+        if item is not None and item.parent() is None:
+            print(f"Clique sur une section : {label}")
+            return
 
-        super().accept()
+
+        # --- Vérifications projet ---
+        if not self.current_project_name or self.current_project_name in [
+            "Nom du projet - doit être le même que CARTO FUTAIE ou RSEQUOIA",
+            "DefaultProject"
+        ]:
+            QMessageBox.information(
+                self,
+                "Nom absent",
+                "Merci de renseigner le nom du projet."
+            )
+            return
+
+        if not self.current_style_folder:
+            QMessageBox.information(
+                self,
+                "Kartenn",
+                "Pas de dossier de styles sélectionné, veuillez cliquer sur 🔧."
+            )
+            return
+
+        current_tab = self.ui.tabWidget.tabText(self.ui.tabWidget.currentIndex())
+
+        # --- Appel dynamique ---
+
+        if current_tab == "WMS/WFS":  # index de l'onglet "Paramètres de données"
+            load_wmts([label])
+
+        else:
+            unknown_data(parent=self)
+

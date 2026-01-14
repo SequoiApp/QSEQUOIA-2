@@ -384,6 +384,9 @@ class QSEQUOIA2:
             # Propager aux onglets si nécessaire
             if hasattr(self.dockwidget, "tools_tab"):
                 self.dockwidget.tools_tab.current_project_name = self.current_project_name
+            
+            if hasattr(self.dockwidget, "data_settings_tab"):
+                self.dockwidget.data_settings_tab.current_project_name = self.current_project_name
 
 
         self.current_project_name = project_name
@@ -421,6 +424,9 @@ class QSEQUOIA2:
             # Propager aux onglets si nécessaire
             if hasattr(self.dockwidget, "tools_tab"):
                 self.dockwidget.tools_tab.current_project_name = self.current_project_name
+            
+            if hasattr(self.dockwidget, "data_settings_tab"):
+                self.dockwidget.data_settings_tab.current_project_name = self.current_project_name
 
 
         if text:  # éviter de lancer sur vide

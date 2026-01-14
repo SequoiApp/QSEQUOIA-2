@@ -45,7 +45,6 @@ class ToolsSettingsDialog(QWidget):
         else:
             self.call_functions(item, column)
 
-
     def call_functions(self, item, column):
 
 

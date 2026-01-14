@@ -14,7 +14,7 @@ from .config import get_wmts, get_style, get_path, get_display_name, get_wmts
 
 # region LOAD LAYERS
 
-def load_wmts(*wmts_keys, group_name = None):
+def load_wmts(label, group_name = None):
     """
     Load WMTS layers by key (from wmts.yaml) into the project.
     If group_name is given, layers go into that group (hidden at root); 
@@ -28,7 +28,7 @@ def load_wmts(*wmts_keys, group_name = None):
     if group_name:
         group = root.findGroup(group_name) or root.addGroup(group_name)
 
-    for key in wmts_keys:
+    for key in label:
         display_name, url = get_wmts(key)
         if project.mapLayersByName(display_name):
             QgsMessageLog.logMessage(f"Layer '{display_name}' already loaded, skipping.", "Qsequoia2", Qgis.Info)
@@ -46,6 +46,8 @@ def load_wmts(*wmts_keys, group_name = None):
 
         if group:
             group.addLayer(layer)
+
+
 
 def load_vectors(*vector_keys, group_name=None):
     """
@@ -86,6 +88,7 @@ def load_vectors(*vector_keys, group_name=None):
         loaded_keys.append(key)
 
     return loaded_keys
+
 
 def load_rasters(*raster_keys, group_name=None):
     """
@@ -128,6 +131,8 @@ def load_rasters(*raster_keys, group_name=None):
         layer.triggerRepaint()
 
     return loaded_keys
+
+
 
 def resolve_layer_name(key: str) -> str:
     # Try alias lookup

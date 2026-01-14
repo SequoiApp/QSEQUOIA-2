@@ -31,6 +31,7 @@ from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtWidgets import QTreeWidgetItem
 from PyQt5.QtGui import QIcon
 
+from qsequoia2.scripts.data_settings.add_data import AddDataDialog
 from qsequoia2.scripts.forest_settings.forest_settings_dialog import Ui_ForestSettingsDialog
 from qsequoia2.scripts.project_settings.project_settings_dialog import Ui_ProjectSettingsDialog
 from qsequoia2.scripts.data_settings.add_data_dialog import Ui_AddDataDialog
@@ -79,9 +80,15 @@ class QSEQUOIA2DockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.forest_settings_ui = Ui_ForestSettingsDialog()
         self.forest_settings_ui.setupUi(forest_settings_tab)
 
-        data_settings_tab = QWidget()
-        self.data_settings_ui = Ui_AddDataDialog()
-        self.data_settings_ui.setupUi(data_settings_tab)
+        self.data_settings_tab = QWidget()
+
+        self.data_settings_tab = AddDataDialog(
+            current_project_name=self.project_name,
+            current_style_folder=self.current_style_folder,
+            downloads_path=self.downloads_path,
+            current_project_folder=self.current_project_folder,
+            parent=self,
+            iface=self.iface)
 
 
         # Ajouter les onglets + icons au QTabWidget
@@ -93,7 +100,7 @@ class QSEQUOIA2DockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.tabWidget.setTabToolTip(1, "Paramètres du projet")
         self.tabWidget.addTab(forest_settings_tab, QIcon(plugin_path + "/icons/forest_settings.svg"),"")
         self.tabWidget.setTabToolTip(2, "Paramètres forestiers")
-        self.tabWidget.addTab(data_settings_tab, QIcon(plugin_path + "/icons/add_data.svg"),"")
+        self.tabWidget.addTab(self.data_settings_tab, QIcon(plugin_path + "/icons/add_data.svg"),"")
         self.tabWidget.setTabToolTip(3, "Paramètres de données")
 
 
