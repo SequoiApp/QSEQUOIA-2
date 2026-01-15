@@ -5,8 +5,9 @@ import yaml
 from pathlib import Path
 from dataclasses import dataclass
 
-from qgis.PyQt.QtWidgets import QFileDialog
-from qgis.core import QgsVectorLayer, QgsWkbTypes
+
+
+from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsWkbTypes
 
 
 
@@ -90,12 +91,9 @@ def get_path(label, project_name, project_folder, style_folder, parent):
 
 def find_best_layer_qgis(project_folder, label, max_candidates=3):
     """
-    Version optimisée pour plugin QGIS
+    Version optimisée pour plugin QGIS, support vecteur + raster
     """
 
-    # ----------------------------
-    # 1. Parsing label YAML
-    # ----------------------------
     label = label.lower()
     parts = label.split("_")
 
@@ -106,31 +104,38 @@ def find_best_layer_qgis(project_folder, label, max_candidates=3):
 
     expected_tokens = parts
 
-    # ----------------------------
-    # 2. Pré-sélection PAR NOM (rapide)
-    # ----------------------------
+    # Extensions supportées
+    vector_exts = (".shp", ".gpkg", ".geojson")
+    raster_exts = (".tif", ".img")
+
     candidates = []
 
     for root, _, files in os.walk(project_folder):
         for f in files:
             fname = f.lower()
-
-            if not fname.endswith((".shp", ".gpkg", ".geojson")):
-                continue
+            path = os.path.join(root, f)
 
             score = 0
 
-            # Géométrie dans le nom (cheap)
-            if expected_geom and expected_geom in fname:
-                score += 50
+            # --- Détection vecteur
+            if fname.endswith(vector_exts):
+                if expected_geom and expected_geom in fname:
+                    score += 50
+                for token in expected_tokens:
+                    if token in fname:
+                        score += 20
+                if score > 0:
+                    candidates.append((score, path))
 
-            # Tokens métier
-            for token in expected_tokens:
-                if token in fname:
-                    score += 20
-
-            if score > 0:
-                candidates.append((score, os.path.join(root, f)))
+            # --- Détection raster
+            elif fname.endswith(raster_exts):
+                # Pour raster, on ne teste pas la géométrie
+                # juste les tokens métier
+                for token in expected_tokens:
+                    if token in fname:
+                        score += 20
+                if score > 0:
+                    candidates.append((score, path))
 
     if not candidates:
         return None
@@ -140,29 +145,32 @@ def find_best_layer_qgis(project_folder, label, max_candidates=3):
     candidates = candidates[:max_candidates]
 
     # ----------------------------
-    # 3. Vérification GÉOMÉTRIE RÉELLE (peu coûteuse)
+    # Vérification finale
     # ----------------------------
     for _, path in candidates:
-        layer = QgsVectorLayer(path, "tmp", "ogr")
-        if not layer.isValid():
-            continue
+        if path.lower().endswith(vector_exts):
+            # vecteur → vérification géométrie
+            layer = QgsVectorLayer(path, "tmp", "ogr")
+            if not layer.isValid():
+                continue
+            g = QgsWkbTypes.geometryType(layer.wkbType())
+            found_geom = None
+            if g == QgsWkbTypes.PolygonGeometry:
+                found_geom = "poly"
+            elif g == QgsWkbTypes.LineGeometry:
+                found_geom = "line"
+            elif g == QgsWkbTypes.PointGeometry:
+                found_geom = "point"
+            if expected_geom and found_geom != expected_geom:
+                continue
+            return path
 
-        g = QgsWkbTypes.geometryType(layer.wkbType())
-
-        found_geom = None
-        if g == QgsWkbTypes.PolygonGeometry:
-            found_geom = "poly"
-        elif g == QgsWkbTypes.LineGeometry:
-            found_geom = "line"
-        elif g == QgsWkbTypes.PointGeometry:
-            found_geom = "point"
-
-        if expected_geom and found_geom != expected_geom:
-            continue
-
-        return path
+        elif path.lower().endswith(raster_exts):
+            # raster → on accepte directement
+            return path
 
     return None
+
 
 
 # endregion
@@ -177,54 +185,71 @@ def find_best_layer_qgis(project_folder, label, max_candidates=3):
 
 
 def get_style(layer_path, style_folder):
-    """select the style file for a vector layer based on its key"""
-
+    """
+    Sélectionne le fichier de style (.qml) pour une couche vecteur ou raster
+    en fonction de son label.
+    
+    layer_path : dict {label: path}
+    style_folder : dossier contenant les .qml
+    """
     if not style_folder:
         raise ValueError("Global 'styles_directory' is not set")
     
-    label,path = next(iter(layer_path.items()))
+    label, path = next(iter(layer_path.items()))
     label_lower = label.lower()
 
-    # --- Extraire le token métier + type de géométrie
-    # ex: 'SEQ_PARCA_poly' -> 'PARCA_poly'
+    # --- Extraire token métier + type de géométrie (vecteur)
     parts = label.split("_")
-    if len(parts) >= 2:
-        token = parts[1]  # nom métier
-        geom = parts[-1] if parts[-1] in ("poly", "line", "point") else ""
-        token_with_geom = f"{token}_{geom}" if geom else token
+    geom = ""
+    if len(parts) >= 2 and parts[-1] in ("poly", "line", "point"):
+        geom = parts[-1]
+        token = parts[1]
+        token_with_geom = f"{token}_{geom}"
+    elif len(parts) >= 2:
+        token = parts[1]
+        token_with_geom = token
     else:
-        token_with_geom = label_lower
+        token = label_lower
+        token_with_geom = token
+
 
     token_with_geom = token_with_geom.lower()
-
+    token = token.lower()  # pour fallback
 
     # --- Scan des fichiers QML
     if not os.path.isdir(style_folder):
         return None
 
+    # --- Liste des fichiers QML
+    qml_files = [f for f in os.listdir(style_folder) if f.lower().endswith(".qml")]
+
     best_match = None
-    for f in os.listdir(style_folder):
-        if not f.lower().endswith(".qml"):
-            continue
 
+    # Cherche un match exact token + geom (vecteur)
+    for f in qml_files:
         fname = os.path.splitext(f)[0].lower()
-
-        # --- Match exact token + geom si possible
         if token_with_geom in fname:
             best_match = os.path.join(style_folder, f)
             break
 
-    # --- Si pas trouvé, on peut retenter avec juste le token métier
+    # Si pas trouvé, match sur token seul (vecteur ou raster)
     if not best_match:
-        for f in os.listdir(style_folder):
-            if not f.lower().endswith(".qml"):
-                continue
+        for f in qml_files:
             fname = os.path.splitext(f)[0].lower()
             if token in fname:
                 best_match = os.path.join(style_folder, f)
                 break
 
+    # Si toujours pas trouvé, pour raster on peut tester juste label complet
+    if not best_match and not geom:
+        for f in qml_files:
+            fname = os.path.splitext(f)[0].lower()
+            if label_lower in fname:
+                best_match = os.path.join(style_folder, f)
+                break
+
     return best_match
+
 
     
     

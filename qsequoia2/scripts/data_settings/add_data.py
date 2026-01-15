@@ -1,6 +1,7 @@
 import importlib
-from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog, QMessageBox, QFileDialog
 from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QTreeWidget, QTreeWidgetItem
+
 import os
 import yaml
 
@@ -15,6 +16,7 @@ from itertools import chain
 # Import from utils folder
 
 from qsequoia2.scripts.utils.add_vector_layers import load_vectors
+from qsequoia2.scripts.utils.add_raster_layers import load_rasters
 from qsequoia2.scripts.utils.add_wmts_layers import load_wmts
 from qsequoia2.scripts.utils.config import *
 
@@ -219,13 +221,49 @@ class AddDataDialog(QDialog):
 
         # --- Appel dynamique ---
 
+        # Pour les WMTS
+
         if current_tab == "WMS/WFS":  # index de l'onglet "Paramètres de données"
             load_wmts([label])
 
+        # Pour les Rasters
+
         if current_tab == "RASTERS":
-            print("Chargement raster")
+            if self.current_project_folder is None:
+
+                layer_paths = {}
+
+                files, _ = QFileDialog.getOpenFileNames(
+                    parent=self,
+                    caption="Sélectionner une couche",
+                    directory="",
+                    filter="Couches raster (*.tif *.tiff *.png)"
+                )
+
+                if files:
+                    # Cas normal : un seul label → une seule couche
+                    layer_paths[label] = files[0]
+
+            else:
+                layer_paths = get_path(
+                    label,
+                    project_name=self.current_project_name,
+                    project_folder=self.current_project_folder,
+                    style_folder=self.current_style_folder,
+                    parent=self
+                )
+
+            if layer_paths:
+                load_rasters(
+                    layer_paths,
+                    project_name=self.current_project_name,
+                    project_folder=self.current_project_folder,
+                    style_folder=self.current_style_folder,
+                    parent=self
+                )
 
 
+        # Pour les vecteurs
 
         else:
             if self.current_project_folder is None:
