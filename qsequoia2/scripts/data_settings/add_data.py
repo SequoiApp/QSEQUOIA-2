@@ -1,3 +1,27 @@
+# region IMPORT
+
+# region IMPORT
+"""
+Module 4 : add_data
+
+Ce module gère l’interface utilisateur pour ajouter des données dans le projet QGIS.
+
+Fonctionnalités principales :
+- Affiche les vecteurs, rasters, services web et bases de données dans des onglets
+- Permet d’ajouter les couches au projet avec leur style
+- Gère la création de groupes et l’organisation des couches
+- Lit les fichiers YAML de configuration pour alimenter les arborescences
+
+Classe principale :
+- AddDataDialog : QDialog qui contient toute la logique métier pour l’ajout de données.
+
+Auteur : Alexandre Le Bars - Comité des Forêts
+        Paul Carteron - Racines experts forestiers associés
+        Matthieu Chevereau - Caisse des dépôts et consignation
+Email : alexlb329@gmail.com
+
+"""
+
 import importlib
 from PyQt5.QtWidgets import QDialog, QMessageBox, QFileDialog
 from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QTreeWidget, QTreeWidgetItem
@@ -20,8 +44,50 @@ from qsequoia2.scripts.utils.add_raster_layers import load_rasters
 from qsequoia2.scripts.utils.add_wmts_layers import load_wmts
 from qsequoia2.scripts.utils.config import *
 
+# endregion
+
+# region ClASSDATADIALOG
+
+
 class AddDataDialog(QDialog):
+    """
+    Classe principale pour l’interface d’ajout de données.
+
+    Logique métier :
+    - Initialise les onglets et les arborescences
+    - Connecte les signaux des QTreeWidget pour l’ajout automatique des couches
+    - Charge les couches vecteur, raster et WMTS avec style
+    - Crée des groupes dans le projet si nécessaire
+
+    Attributs :
+        iface : interface QGIS
+        current_project_name : nom du projet courant
+        current_style_folder : dossier des styles
+        downloads_path : dossier de téléchargement
+        current_project_folder : dossier du projet
+        ui : instance de Ui_AddDataDialog
+        dock : parent QDialog
+
+    Méthodes principales :
+        add_tree_tab() : initialise les QTreeWidgets et les onglets
+        on_item_clicked(item, column) : callback sur clic d’un item
+        whats_layers(item, label, column) : détermine le type de couche et appelle la fonction de chargement appropriée
+
+    """
+
     def __init__(self, current_project_name, current_style_folder, downloads_path, current_project_folder, iface, parent=None):
+        """
+        Initialise le module AddDataDialog, connecte les signaux des QTreeWidgets.
+
+        Args:
+            current_project_name (str)
+            current_style_folder (str)
+            downloads_path (str)
+            current_project_folder (str)
+            iface : interface QGIS
+            parent : QWidget optionnel
+        """
+
         super().__init__(parent)
         self.iface = iface
         self.current_project_name = current_project_name
@@ -45,6 +111,15 @@ class AddDataDialog(QDialog):
 
 
     def add_tree_tab(self):
+        """
+        Crée et remplit les onglets du dialogue.
+
+        Onglets créés :
+        - VECTEURS : lit le YAML seq_layer et affiche les couches vectorielles geojson disponibles
+        - RASTERS : lit le YAML seq_layer et affiche les rasters tif disponibles
+        - WMS/WFS : lit le YAML seq_layer et affiche les services WMTS/WFS disponibles
+        - BASES DE DONNÉES : placeholder pour les potentielles bases de données des utilisateurs
+        """
 
         # Widget Vecteurs 
 
@@ -175,6 +250,13 @@ class AddDataDialog(QDialog):
 
         
     def on_item_clicked(self, item, column):
+        """
+        Slot appelé lors d’un clic sur un item d’un QTreeWidget.
+
+        Args:
+            item (QTreeWidgetItem): l’élément cliqué
+            column (int): la colonne cliquée
+        """
         tree = self.sender()  # QTreeWidget qui a émis le signal
         label = item.text(0)
 
@@ -184,8 +266,19 @@ class AddDataDialog(QDialog):
 
 
     def whats_layers(self, item, label, column):
+        """
+        Détecte la couche sélectionnée et la charge dans QGIS.
 
+        Vérifie :
+        - Si le projet et le dossier de styles sont renseignés
+        - L’onglet courant (Vecteurs, Rasters, WMTS)
+        - Appelle dynamiquement `get_path` pour trouver la couches puis `load_vectors`, `load_rasters` ou `load_wmts`
 
+        Args:
+            item (QTreeWidgetItem): l’élément cliqué
+            label (str): label de l’élément
+            column (int): index de la colonne cliquée
+        """
 
         print(f"\n[add_data] => Clic sur l'item : {label}")
 

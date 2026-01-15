@@ -1,4 +1,18 @@
 # region IMPORT
+
+# region IMPORT
+"""
+Module `config.py` : gestion des chemins, structure SIG, projets, styles et WMTS.
+
+Ce module fournit des fonctions pour :
+- récupérer le dossier du plugin et des fichiers de configuration
+- lire la structure SIG (`sig_structure.yaml`)
+- rechercher des couches vecteur ou raster dans un dossier de projet
+- récupérer les styles (.qml)
+- accéder aux projets et layouts
+- récupérer les services WMTS
+"""
+
 from qgis.core import (QgsMessageLog,Qgis)
 import os
 import yaml
@@ -18,13 +32,23 @@ from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsWkbTypes
 
 def get_plugin_root() -> Path:
     """
-    Returns the root directory of the plugin (two levels up from this file).
+    Retourne le répertoire racine du plugin (deux niveaux au-dessus de ce fichier).
+
+    Returns:
+        Path: chemin du dossier racine du plugin
     """
+
     return Path(__file__).resolve().parent.parent
 
 def get_config_path(filename: str) -> Path:
     """
-    Returns the full path to a file under the plugin's 'config' folder.
+    Retourne le chemin complet vers un fichier du dossier 'inst' du plugin.
+
+    Args:
+        filename (str): nom du fichier
+
+    Returns:
+        Path: chemin complet du fichier
     """
     return get_plugin_root() / ".." / "inst" / filename
 
@@ -35,6 +59,13 @@ def get_config_path(filename: str) -> Path:
 _SIG_STRUCT: dict | None = None
 
 def _load_sig_structure() -> dict:
+    """
+    Charge le fichier sig_structure.yaml en mémoire et le met en cache.
+    
+    Returns:
+        dict: structure SIG
+    """
+
     global _SIG_STRUCT
     if _SIG_STRUCT is None:
         cfg_path = get_config_path("sig_structure.yaml")
@@ -44,9 +75,18 @@ def _load_sig_structure() -> dict:
 
 def _find_entry(logical_key):
     """
-    Return (entry_dict, folder_path_parts) for this key,
-    or KeyError if missing entirely.
+    Retourne l'entrée correspondante à une clé logique dans la structure SIG.
+
+    Args:
+        logical_key (str): clé logique à rechercher
+
+    Returns:
+        tuple: (entry_dict, folder_path_parts)
+    
+    Raises:
+        KeyError: si la clé n'existe pas
     """
+
     struct = _load_sig_structure()["structure"]
     if logical_key in struct.keys():
         path = struct[logical_key].get("path", [])
@@ -68,6 +108,19 @@ def _find_entry(logical_key):
 # ----------------------------------------------------------------------------------
 
 def get_path(label, project_name, project_folder, style_folder, parent):
+    """
+    Recherche le chemin du fichier correspondant à un label YAML seq_layers dans le projet.
+
+    Args:
+        label (str): label de la couche (ex: 'SEQ_SSPF_poly')
+        project_name (str): nom du projet courant
+        project_folder (str): dossier racine du projet
+        style_folder (str): dossier contenant les styles
+        parent (QWidget): widget parent (optionnel)
+
+    Returns:
+        dict: {label: chemin_complet} ou {} si non trouvé
+    """
 
     path = find_best_layer_qgis(project_folder, label)
 
@@ -91,7 +144,19 @@ def get_path(label, project_name, project_folder, style_folder, parent):
 
 def find_best_layer_qgis(project_folder, label, max_candidates=3):
     """
-    Version optimisée pour plugin QGIS, support vecteur + raster
+    Recherche optimisée d'une couche vectorielle ou raster dans le dossier projet.
+
+    Supporte :
+        - vecteurs : shp, gpkg, geojson
+        - rasters : tif, img
+
+    Args:
+        project_folder (str): dossier du projet
+        label (str): label YAML (ex: 'SEQ_PARCA_poly')
+        max_candidates (int, optional): nombre max de fichiers candidats à vérifier
+
+    Returns:
+        str | None: chemin du fichier trouvé, ou None si aucun
     """
 
     label = label.lower()
@@ -186,12 +251,16 @@ def find_best_layer_qgis(project_folder, label, max_candidates=3):
 
 def get_style(layer_path, style_folder):
     """
-    Sélectionne le fichier de style (.qml) pour une couche vecteur ou raster
-    en fonction de son label.
-    
-    layer_path : dict {label: path}
-    style_folder : dossier contenant les .qml
+    Sélectionne le fichier de style (.qml) le plus approprié pour une couche vecteur ou raster.
+
+    Args:
+        layer_path (dict): {label: path}
+        style_folder (str): dossier contenant les fichiers .qml
+
+    Returns:
+        str | None: chemin du fichier de style correspondant
     """
+
     if not style_folder:
         raise ValueError("Global 'styles_directory' is not set")
     
@@ -266,13 +335,28 @@ def get_style(layer_path, style_folder):
 
 def get_display_name(logical_key):
     """
-    Return the display_name for this logical_key,
-    or the key itself if none defined.
+    Retourne le nom d'affichage pour une clé logique SIG.
+
+    Args:
+        logical_key (str): clé logique
+
+    Returns:
+        str: nom d'affichage ou la clé elle-même si non défini
     """
     entry, _ = _find_entry(logical_key)
     return entry.get("display_name")
 
 def get_project(folder: str = "output_folder"):
+
+    """
+    Retourne un dictionnaire des noms de projets disponibles pour un dossier donné.
+
+    Args:
+        folder (str): nom du dossier dans sig_structure.yaml
+
+    Returns:
+        dict: {clé: display_name}
+    """
 
     structure = _load_sig_structure()["structure"]
 
@@ -293,6 +377,19 @@ def get_project(folder: str = "output_folder"):
 # -----------------------------------------------------------------------
 
 def get_wmts(logical_key):
+    """
+    Retourne le display_name et l'URL d'un service WMTS à partir de sa clé logique.
+
+    Args:
+        logical_key (str): clé logique ou display_name
+
+    Returns:
+        tuple: (display_name, url)
+    
+    Raises:
+        KeyError: si le service n'est pas trouvé
+    """
+
     wmts_config_path = get_config_path("qseq_URLS.yaml")
     with open(wmts_config_path, "r", encoding="utf-8") as f:
         wmts_config = yaml.safe_load(f)
@@ -330,6 +427,16 @@ def _load_project() -> dict:
 
 @dataclass
 class ProjectCanvas:
+    """
+    Classe représentant la configuration du canvas d'un projet.
+    
+    Attributes:
+        scale (int): échelle par défaut
+        zoom_on (str): couche ou objet sur lequel zoomer
+        readonly (list | None): liste des éléments en lecture seule
+        groups (list): groupes affichés
+        themes (list): thèmes disponibles
+    """
     scale: int
     zoom_on: str
     readonly: list | None
@@ -338,6 +445,14 @@ class ProjectCanvas:
 
 @dataclass
 class ProjectLayout:
+    """
+    Classe représentant la configuration du layout d'un projet.
+    
+    Attributes:
+        theme (str): thème appliqué
+        legends (list): légendes à afficher
+    """
+
     theme: str
     legends: list
 
@@ -349,6 +464,16 @@ def _flatten(seq):
             yield x
 
 def get_project_canvas(name: str) -> ProjectCanvas:
+    """
+    Retourne la configuration canvas pour un projet donné.
+
+    Args:
+        name (str): nom du projet
+
+    Returns:
+        ProjectCanvas
+    """
+
     raw = _load_project().get(name, {}).get("canvas", {})
     if "themes" in raw:
         for t in raw["themes"]:
@@ -360,6 +485,15 @@ def get_project_canvas(name: str) -> ProjectCanvas:
     return ProjectCanvas(**raw)
 
 def get_project_layout(name: str) -> ProjectLayout:
+    """
+    Retourne la configuration layout pour un projet donné.
+
+    Args:
+        name (str): nom du projet
+
+    Returns:
+        ProjectLayout
+    """
     raw = _load_project().get(name, {}).get("layout", {})
     return ProjectLayout(**raw)
 
