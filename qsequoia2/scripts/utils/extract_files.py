@@ -27,7 +27,7 @@ from qgis.PyQt.QtWidgets import QFileDialog
 
 
 
-from .add_layers import add_layers
+from .add_vector_layers import load_vectors
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -136,7 +136,7 @@ def real_extract_files(downloads_path, project_name, style_folder, project_folde
     btn_ok = QPushButton("Ouvrir ici")
     btn_ok.clicked.connect(lambda: (
         print("ouverture...(appel de add_layers)"),
-        add_layers(downloads_path, project_name, project_folder, temp_folder, style_folder, dockwidget=None),
+        load_vectors(downloads_path, project_name, project_folder, temp_folder, style_folder, dockwidget=None),
 
         bar.popWidget(message)
     ))

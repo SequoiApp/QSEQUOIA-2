@@ -6,13 +6,17 @@ import yaml
 
 from qsequoia2.scripts.tools_settings.PY.unload import unknown_data
 
+
+
 from .add_data_dialog import Ui_AddDataDialog
 from itertools import chain
 
 
 # Import from utils folder
-from ..utils.layers import *
-from qsequoia2.scripts.utils.layers import *
+
+from qsequoia2.scripts.utils.add_vector_layers import load_vectors
+from qsequoia2.scripts.utils.add_wmts_layers import load_wmts
+from qsequoia2.scripts.utils.config import *
 
 class AddDataDialog(QDialog):
     def __init__(self, current_project_name, current_style_folder, downloads_path, current_project_folder, iface, parent=None):
@@ -181,16 +185,13 @@ class AddDataDialog(QDialog):
 
 
 
-        print( f"test du nom de projet dans add_data.py __init__ : {self.current_project_name}" )
-
-
-        print(f"Clic sur l'item : {label}")
+        print(f"\n[add_data] => Clic sur l'item : {label}")
 
 
 
         # --- Détection automatique des sections (items parents) ---
         if item is not None and item.parent() is None:
-            print(f"Clique sur une section : {label}")
+            print(f"\n[add_data] => Clique sur une section : {label}")
             return
 
 
@@ -221,6 +222,43 @@ class AddDataDialog(QDialog):
         if current_tab == "WMS/WFS":  # index de l'onglet "Paramètres de données"
             load_wmts([label])
 
+        if current_tab == "RASTERS":
+            print("Chargement raster")
+
+
+
         else:
-            unknown_data(parent=self)
+            if self.current_project_folder is None:
+
+                layer_paths = {}
+
+                files, _ = QFileDialog.getOpenFileNames(
+                    parent=self,
+                    caption="Sélectionner une couche",
+                    directory="",
+                    filter="Couches vecteur (*.shp *.gpkg *.geojson)"
+                )
+
+                if files:
+                    # Cas normal : un seul label → une seule couche
+                    layer_paths[label] = files[0]
+
+            else:
+                layer_paths = get_path(
+                    label,
+                    project_name=self.current_project_name,
+                    project_folder=self.current_project_folder,
+                    style_folder=self.current_style_folder,
+                    parent=self
+                )
+
+            if layer_paths:
+                load_vectors(
+                    layer_paths,
+                    project_name=self.current_project_name,
+                    project_folder=self.current_project_folder,
+                    style_folder=self.current_style_folder,
+                    parent=self
+                )
+
 

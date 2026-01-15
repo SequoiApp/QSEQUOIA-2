@@ -368,33 +368,34 @@ class QSEQUOIA2:
         # fallback si rien trouvé
         if not project_name:
             project_name = os.path.basename(self.current_project_folder).split("_SIG")[0]
-        if self.connect_dialog:
-            self.connect_dialog.update_watch_path_label()
 
-        
+
         self.current_project_name = project_name
 
-        # Propager au DockWidget
+        # --- Propagation au DockWidget ---
         if self.dockwidget:
             self.dockwidget.current_project_name = self.current_project_name
+            self.dockwidget.current_project_folder = self.current_project_folder
+
+            # Afficher uniquement le nom du projet dans le champ
             self.dockwidget.name.blockSignals(True)
             self.dockwidget.name.setText(self.current_project_name)
             self.dockwidget.name.blockSignals(False)
 
-            # Propager aux onglets si nécessaire
+            # Propager aux onglets
             if hasattr(self.dockwidget, "tools_tab"):
                 self.dockwidget.tools_tab.current_project_name = self.current_project_name
-            
+                self.dockwidget.tools_tab.current_project_folder = self.current_project_folder
+
             if hasattr(self.dockwidget, "data_settings_tab"):
                 self.dockwidget.data_settings_tab.current_project_name = self.current_project_name
+                self.dockwidget.data_settings_tab.current_project_folder = self.current_project_folder
 
-
-        self.current_project_name = project_name
-
-        # mettre à jour l'UI de connect_label si elle est ouverte
+        # Mise à jour éventuelle du connect_dialog
         if self.connect_dialog:
             self.connect_dialog.update_watch_path_label()
 
+        
 
         # redémarrer le watcher
         if self.watcher is not None:

@@ -1,10 +1,17 @@
+# region IMPORT
+from qgis.core import (QgsMessageLog,Qgis)
+import os
 import yaml
 from pathlib import Path
 from dataclasses import dataclass
 
-from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.PyQt.QtWidgets import QFileDialog
+from qgis.core import QgsVectorLayer, QgsWkbTypes
 
-from .variable import get_project_variable, get_global_variable
+
+
+# endregion
+
 
 # region PLUGIN PATH
 
@@ -49,46 +56,188 @@ def _find_entry(logical_key):
             return files[logical_key], folder.get("path", [])
     raise KeyError(f"No entry for '{logical_key}' in sig_structure.yaml")
 
-def get_path(logical_key, forest=None, base_dir=None):
-    entry, path = _find_entry(logical_key)
-    forest = forest or get_project_variable("forest_prefix")
-    base_dir = base_dir or get_project_variable("forest_directory")
-    if not forest or not base_dir:
-        QMessageBox.critical(None, "Configuration Error", "Veuillez sélectionner une forêt dans 'project_settings'.")
+
+# endregion
+
+# region GET PATH
+
+
+# ----------------------------------------------------------------------------------
+# Fonction get_path modifiée pour rechercher la couche dans le dossier de projet
+# ----------------------------------------------------------------------------------
+
+def get_path(label, project_name, project_folder, style_folder, parent):
+
+    path = find_best_layer_qgis(project_folder, label)
+
+    if path:
+        QgsMessageLog.logMessage(
+            f"Layer trouvé : {path}",
+            "Qsequoia2",
+            level=Qgis.Info
+        )
+        return {label: path}
+
+    QgsMessageLog.logMessage(
+        f"Aucune couche trouvée pour {label}",
+        "Qsequoia2",
+        level=Qgis.Warning
+    )
+    return {}
+
+
+# Fonction utilitaire de get_path pour trouver les couches
+
+def find_best_layer_qgis(project_folder, label, max_candidates=3):
+    """
+    Version optimisée pour plugin QGIS
+    """
+
+    # ----------------------------
+    # 1. Parsing label YAML
+    # ----------------------------
+    label = label.lower()
+    parts = label.split("_")
+
+    expected_geom = None
+    if parts[-1] in ("poly", "line", "point"):
+        expected_geom = parts[-1]
+        parts = parts[:-1]
+
+    expected_tokens = parts
+
+    # ----------------------------
+    # 2. Pré-sélection PAR NOM (rapide)
+    # ----------------------------
+    candidates = []
+
+    for root, _, files in os.walk(project_folder):
+        for f in files:
+            fname = f.lower()
+
+            if not fname.endswith((".shp", ".gpkg", ".geojson")):
+                continue
+
+            score = 0
+
+            # Géométrie dans le nom (cheap)
+            if expected_geom and expected_geom in fname:
+                score += 50
+
+            # Tokens métier
+            for token in expected_tokens:
+                if token in fname:
+                    score += 20
+
+            if score > 0:
+                candidates.append((score, os.path.join(root, f)))
+
+    if not candidates:
         return None
-    
-    if not entry:
-        return(Path(base_dir).joinpath(*path))
 
-    filename = entry.get("filename")
-    if not filename:
-        raise KeyError(f"Entry for '{logical_key}' missing 'filename'")
+    # On garde les N meilleurs
+    candidates.sort(reverse=True)
+    candidates = candidates[:max_candidates]
 
-    # ensure dir exists
-    folder = Path(base_dir).joinpath(*path)
-    folder.mkdir(parents=True, exist_ok=True)
+    # ----------------------------
+    # 3. Vérification GÉOMÉTRIE RÉELLE (peu coûteuse)
+    # ----------------------------
+    for _, path in candidates:
+        layer = QgsVectorLayer(path, "tmp", "ogr")
+        if not layer.isValid():
+            continue
 
-    # prefix if needed
-    if not filename.startswith(forest):
-        filename = f"{forest}_{filename}"
+        g = QgsWkbTypes.geometryType(layer.wkbType())
 
-    return folder / filename
+        found_geom = None
+        if g == QgsWkbTypes.PolygonGeometry:
+            found_geom = "poly"
+        elif g == QgsWkbTypes.LineGeometry:
+            found_geom = "line"
+        elif g == QgsWkbTypes.PointGeometry:
+            found_geom = "point"
 
-def get_style(logical_key, styles_dir=None):
-    entry, _ = _find_entry(logical_key)
-    style_name = entry.get("style")
-    if not style_name:
-        raise KeyError(f"Entry '{logical_key}' missing required 'style'")
+        if expected_geom and found_geom != expected_geom:
+            continue
 
-    styles_dir = styles_dir or get_global_variable("styles_directory")
-    if not styles_dir:
+        return path
+
+    return None
+
+
+# endregion
+
+# region STYLES
+
+
+# ----------------------------------------------------------------------------------
+# Fonction get_style modifiée pour rechercher le style dans le dossier de styles
+# ----------------------------------------------------------------------------------
+
+
+
+def get_style(layer_path, style_folder):
+    """select the style file for a vector layer based on its key"""
+
+    if not style_folder:
         raise ValueError("Global 'styles_directory' is not set")
+    
+    label,path = next(iter(layer_path.items()))
+    label_lower = label.lower()
 
-    style_path = Path(styles_dir) / style_name
-    if not style_path.exists():
-        raise FileNotFoundError(f"Style file not found: {style_path}")
+    # --- Extraire le token métier + type de géométrie
+    # ex: 'SEQ_PARCA_poly' -> 'PARCA_poly'
+    parts = label.split("_")
+    if len(parts) >= 2:
+        token = parts[1]  # nom métier
+        geom = parts[-1] if parts[-1] in ("poly", "line", "point") else ""
+        token_with_geom = f"{token}_{geom}" if geom else token
+    else:
+        token_with_geom = label_lower
 
-    return style_path
+    token_with_geom = token_with_geom.lower()
+
+
+    # --- Scan des fichiers QML
+    if not os.path.isdir(style_folder):
+        return None
+
+    best_match = None
+    for f in os.listdir(style_folder):
+        if not f.lower().endswith(".qml"):
+            continue
+
+        fname = os.path.splitext(f)[0].lower()
+
+        # --- Match exact token + geom si possible
+        if token_with_geom in fname:
+            best_match = os.path.join(style_folder, f)
+            break
+
+    # --- Si pas trouvé, on peut retenter avec juste le token métier
+    if not best_match:
+        for f in os.listdir(style_folder):
+            if not f.lower().endswith(".qml"):
+                continue
+            fname = os.path.splitext(f)[0].lower()
+            if token in fname:
+                best_match = os.path.join(style_folder, f)
+                break
+
+    return best_match
+
+    
+    
+
+    
+
+
+
+
+
+
+
+
 
 def get_display_name(logical_key):
     """
@@ -113,6 +262,10 @@ def get_project(folder: str = "output_folder"):
 # endregion
 
 # region WMTS
+
+# -----------------------------------------------------------------------
+# WMTS
+# -----------------------------------------------------------------------
 
 def get_wmts(logical_key):
     wmts_config_path = get_config_path("qseq_URLS.yaml")
@@ -139,6 +292,7 @@ def get_wmts(logical_key):
 # endregion
 
 # region PROJECT
+
 _PROJECT: dict | None = None
 
 def _load_project() -> dict:
