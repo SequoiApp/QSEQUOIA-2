@@ -5,8 +5,12 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.core import QgsApplication, Qgis
 from qgis.PyQt.QtWidgets import QMessageBox,QFileDialog
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QTimer
 import yaml, timer
+
+from qsequoia2.scripts.global_settings.global_settings import GlobalSettingsDialog
+from qsequoia2.scripts.utils.variable import get_global_variable
 
 
 
@@ -17,13 +21,15 @@ from .QSEQUOIA2_dockwidget import QSEQUOIA2DockWidget
 import os.path
 
 
-from .scripts.PY.unload import unknown_data
+from .scripts.tools_settings.PY.unload import unknown_data
 
 from .scripts.utils.connect_label import connect_label
 
 from .scripts.utils.get_download_folder import get_download_folder
 
 from .scripts.utils.extract_files import extract_files
+
+from .scripts.utils.add_seq_config import add_seq_config
 
 import sys
 
@@ -36,6 +42,7 @@ if watchdog_path not in sys.path:
 from watchdog.observers import Observer
 
 from .scripts.utils.watchdog_handler import DownloadEventHandler
+
 
 
 
@@ -58,12 +65,16 @@ class QSEQUOIA2:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
+
         # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
+        locale_value = QSettings().value('locale/userLocale', 'en')
+        locale = str(locale_value)[:2]
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
-            'QSEQUOIA2_{}.qm'.format(locale))
+            f'QSEQUOIA2_{locale}.qm'
+        )
+
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
@@ -87,7 +98,15 @@ class QSEQUOIA2:
 
 
         self.current_project_name = None
-        self.current_style_folder = None
+
+        print(" \nDownoload the last version of Rsequoia2 config files…")
+        add_seq_config()
+
+        self.user_name = get_global_variable("user_full_name") or "Utilisateur QSEQUOIA2"
+        print(" \nWelcome ! ", self.user_name)
+
+        self.current_style_folder = get_global_variable("styles_directory") or None
+        print(" \n==> Style folder at init:", self.current_style_folder)
         self.current_project_folder = None
 
         self.watcher = QTimer()
@@ -225,11 +244,31 @@ class QSEQUOIA2:
             #    removed on close (see self.onClosePlugin method)
             if self.dockwidget == None:
                 # Create the dockwidget (after translation) and keep reference
-                self.dockwidget = QSEQUOIA2DockWidget()
+                self.dockwidget = QSEQUOIA2DockWidget(current_project_folder= self.current_project_folder, current_project_name=self.current_project_name, 
+                                                      downloads_path = self.downloads_path, current_style_folder = self.current_style_folder, iface=self.iface)
 
 
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
+
+            # icon du main
+            icon_path = os.path.join(plugin_path, "icon.png")
+             
+            pixmap = QPixmap(icon_path)
+
+            self.dockwidget.icon.setPixmap(pixmap)
+            self.dockwidget.icon.setScaledContents(True)
+            self.dockwidget.icon.setFixedSize(128, 128)
+
+            # bouttons d'ajout de couches
+
+            self.dockwidget.add_layers.clicked.connect(self.non_implemented_yet)
+            self.dockwidget.add_layers.setIcon(QIcon(plugin_path + "/icons/add_data.svg"))
+
+                                
+
+
+
 
             # show the dockwidget
 
@@ -244,14 +283,15 @@ class QSEQUOIA2:
 
             # nom du projet
 
-            self.dockwidget.project_name.setPlaceholderText("Nom du projet - ! idem Rsequoia2 !")
-            self.dockwidget.project_name.textChanged.connect(self.on_project_name_changed)
+            self.dockwidget.name.setPlaceholderText("Nom du projet - ! idem Rsequoia2 !")
+            self.dockwidget.name.textChanged.connect(self.on_project_name_changed)
 
 
 
-            #gestionnaire de style
+            #global settings button
 
-            self.dockwidget.setstyle.clicked.connect(self.gest_style)
+            self.dockwidget.setstyle.clicked.connect(self.open_global_settings)
+            self.dockwidget.setstyle.setIcon(QIcon(plugin_path + "/icons/global_settings.svg"))
 
             self.dockwidget.project_folder.clicked.connect(self.set_projectFolder)
 
@@ -261,17 +301,21 @@ class QSEQUOIA2:
 
             # gestionnaire de connexion
 
-            self.dockwidget.btn_connect.clicked.connect(self.open_connect_label)
+            self.dockwidget.watchdog.clicked.connect(self.open_connect_label)
+            self.dockwidget.watchdog.setIcon(QIcon(plugin_path + "/icons/watchdog_settings.svg"))
 
-            #Appel des process
-
-            self.dockwidget.iface = self.iface
-            self.dockwidget.functionsLibrary.itemClicked.connect(self.call_functions)
 
 
             # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
+
+    def non_implemented_yet(self):
+        QMessageBox.information(
+            self.dockwidget,
+            "Non implémenté",
+            "Cette fonctionnalité n'est pas encore implémentée."
+        )
 
 
     def run_process(self):
@@ -324,22 +368,34 @@ class QSEQUOIA2:
         # fallback si rien trouvé
         if not project_name:
             project_name = os.path.basename(self.current_project_folder).split("_SIG")[0]
-        if self.connect_dialog:
-            self.connect_dialog.update_watch_path_label()
 
-
-
-        # empêcher tout signal parasite
-        self.dockwidget.project_name.blockSignals(True)
-        self.dockwidget.project_name.setText(project_name)
-        self.dockwidget.project_name.blockSignals(False)
 
         self.current_project_name = project_name
 
-        # mettre à jour l'UI de connect_label si elle est ouverte
+        # --- Propagation au DockWidget ---
+        if self.dockwidget:
+            self.dockwidget.current_project_name = self.current_project_name
+            self.dockwidget.current_project_folder = self.current_project_folder
+
+            # Afficher uniquement le nom du projet dans le champ
+            self.dockwidget.name.blockSignals(True)
+            self.dockwidget.name.setText(self.current_project_name)
+            self.dockwidget.name.blockSignals(False)
+
+            # Propager aux onglets
+            if hasattr(self.dockwidget, "tools_tab"):
+                self.dockwidget.tools_tab.current_project_name = self.current_project_name
+                self.dockwidget.tools_tab.current_project_folder = self.current_project_folder
+
+            if hasattr(self.dockwidget, "data_settings_tab"):
+                self.dockwidget.data_settings_tab.current_project_name = self.current_project_name
+                self.dockwidget.data_settings_tab.current_project_folder = self.current_project_folder
+
+        # Mise à jour éventuelle du connect_dialog
         if self.connect_dialog:
             self.connect_dialog.update_watch_path_label()
 
+        
 
         # redémarrer le watcher
         if self.watcher is not None:
@@ -357,6 +413,23 @@ class QSEQUOIA2:
         self.current_project_name = text
         print(f"Nom du projet défini manuellement : {text}")
 
+        self.current_project_name = text
+
+        # Propager au DockWidget
+        if self.dockwidget:
+            self.dockwidget.current_project_name = self.current_project_name
+            self.dockwidget.name.blockSignals(True)
+            self.dockwidget.name.setText(self.current_project_name)
+            self.dockwidget.name.blockSignals(False)
+
+            # Propager aux onglets si nécessaire
+            if hasattr(self.dockwidget, "tools_tab"):
+                self.dockwidget.tools_tab.current_project_name = self.current_project_name
+            
+            if hasattr(self.dockwidget, "data_settings_tab"):
+                self.dockwidget.data_settings_tab.current_project_name = self.current_project_name
+
+
         if text:  # éviter de lancer sur vide
             if self.watcher is not None:
                 self.restart_watcher()
@@ -373,14 +446,26 @@ class QSEQUOIA2:
         else:
             print("No directory selected")
             self.current_style_folder = None
+        
+        
+        self.current_style_folder = path
+
+        if self.dockwidget:
+            self.dockwidget.current_style_folder = self.current_style_folder
+            if hasattr(self.dockwidget, "tools_tab"):
+                self.dockwidget.tools_tab.current_style_folder = self.current_style_folder
 
 
 
-    
+
+    def open_global_settings(self):
+        self.global_settings_dialog = GlobalSettingsDialog(plugin=self)
+        self.global_settings_dialog.show()
+
+        
     def open_connect_label(self):
         self.connect_dialog = connect_label(plugin=self)
         self.connect_dialog.show()
-
 
 
     def start_watcher(self):
@@ -436,86 +521,7 @@ class QSEQUOIA2:
             downloads_path=self.downloads_path,
             project_name=self.current_project_name,
             style_folder = self.current_style_folder,
-            project_folder = self.current_project_folder
+            project_folder = self.current_project_folder,
+
             )
 
-
-#-------------------------------------------------------------------------
-# Import des fonctions externes et appel en fonction de l'item cliqué
-#-------------------------------------------------------------------------
-
-
-        # Fonction d'appel des fonctions externes python
-
-    def call_functions(self, item, column):
-
-        plugin_dir = os.path.dirname(__file__)
-        yaml_path = os.path.join(plugin_dir, "scripts", "actions.yaml")
-
-        with open(yaml_path, "r", encoding="utf-8") as f:
-            action_config = yaml.safe_load(f)["actions"]
-
-        project_name = getattr(self, "current_project_name", "DefaultProject")
-        style_folder = getattr(self, "current_style_folder", None)
-        label = item.text(0)
-        # --- Catégories globales : on ne fait rien ---
-        if label in ["Outils en ligne", "Utilitaire python", "Gestion de projets"]:
-            print(f"Clique sur un label de catégorie : {label}")
-            return
-
-        # --- Vérifie que le label existe ---
-        action = action_config.get(label)
-        if action is None:
-            unknown_data(parent=self.dockwidget)
-            return
-
-        # --- Lecture du flag ---
-        skip_check = action.get("skip_check", False)
-
-        # --- Vérifications ---
-        if not skip_check:
-
-            if not project_name or project_name in [
-                "Nom du projet - doit être le même que CARTO FUTAIE ou RSEQUOIA",
-                "DefaultProject"
-            ]:
-                QMessageBox.information(
-                    self.dockwidget,
-                    "Nom absent",
-                    "Merci de renseigner le nom du projet."
-                )
-                return
-
-            if not style_folder:
-                QMessageBox.information(
-                    self.dockwidget,
-                    "Kartenn",
-                    "Pas de dossier de styles sélectionné, veuillez cliquer sur 🔧."
-                )
-                return
-
-        else:
-            # Neutralisation des valeurs manquantes
-            project_name = project_name or ""
-            style_folder = style_folder or ""
-
-        # --- Appel dynamique ---
-        mod_name = action["module"]
-        func_name = action["function"]
-        print(f"Appel de la fonction {func_name} du module {mod_name}")
-
-        module = importlib.import_module(mod_name)
-        func = getattr(module, func_name)
-
-        func(project_name, style_folder, dockwidget=self.dockwidget, iface=self.iface)
-
-
-        #appel des fonctions R
-
-
-
-    def call_R_functions(self, item, column):
-        project_name = getattr(self, "current_project_name", "DefaultProject")
-        
-        if item.text(0) == "📊 Test R":
-            run_r_script(project_name, dockwidget=self.dockwidget)

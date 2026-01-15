@@ -55,7 +55,8 @@ def create_SIG_folder(nom_projet, style_folder, parent_widget=None,log=None,dock
     creer_dossiers(chemin_complet, structure)
 
     # --- Copie du template QGIS ---
-    template = os.path.join(os.path.dirname(__file__), "../../data/template/KARTENN.qgz")
+    script = os.path.join(os.path.dirname(__file__))
+    template = os.path.join(script, "..","..","..","data","template","KARTENN.qgz")
     nouveau_nom = f"{nom_projet}.qgz"
     destination = os.path.join(chemin_complet, nouveau_nom)
 

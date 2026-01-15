@@ -12,8 +12,9 @@ email=alexlb329@gmail.com
 
 about=Provide a brief description of the plugin and its purpose.
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/SequoiApp/Qsequoia2/issues
+repository=https://github.com/SequoiApp/Qsequoia2
+
 # End of mandatory metadata
 
 # Recommended items:
@@ -25,7 +26,7 @@ hasProcessingProvider=no
 # Tags are comma separated with spaces allowed
 tags=python
 
-homepage=http://homepage
+homepage=https://SequoiAPP.github.io/Qsequoia2
 category=Plugins
 icon=icon.png
 # experimental flag

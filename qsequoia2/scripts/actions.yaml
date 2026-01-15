@@ -1,21 +1,21 @@
 actions:
   "📝 Création dossier SIG":
-    module: "qsequoia2.scripts.PY.create_SIG_folder"
+    module: "qsequoia2.scripts.tools_settings.PY.create_SIG_folder"
     function: "create_SIG_folder"
     skip_check: False
 
   "📊 Test R":
-    module: "qsequoia2.scripts.R.run_R"
+    module: "qsequoia2.scripts.tools_settings.R.run_R"
     function: "run_r_script"
     skip_check: False
 
   "🌳Create Qfield project from PARCA or UA":
-    module: "qsequoia2.scripts.PY.script_TERRAIN_POINT"
+    module: "qsequoia2.scripts.tools_settings.PY.script_TERRAIN_POINT"
     function: "create_terrain"
     skip_check: False
 
   "🔧Classification des relevées":
-    module: "qsequoia2.scripts.PY.records_orchestrator"
+    module: "qsequoia2.scripts.tools_settings.PY.records_orchestrator"
     function: "records_orchestrator"
     skip_check: False
   

@@ -25,10 +25,18 @@
 import os
 
 from qgis.PyQt import QtGui, QtWidgets, uic
+from PyQt5.QtWidgets import QWidget
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtWidgets import QTreeWidgetItem
 from PyQt5.QtGui import QIcon
+
+from qsequoia2.scripts.data_settings.add_data import AddDataDialog
+from qsequoia2.scripts.forest_settings.forest_settings_dialog import Ui_ForestSettingsDialog
+from qsequoia2.scripts.project_settings.project_settings_dialog import Ui_ProjectSettingsDialog
+from qsequoia2.scripts.data_settings.add_data_dialog import Ui_AddDataDialog
+from qsequoia2.scripts.tools_settings.tools_settings_dialog import Ui_ToolsSettingsDialog
+from qsequoia2.scripts.tools_settings.tools_settings import ToolsSettingsDialog
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'QSEQUOIA2_dockwidget_base.ui'))
@@ -38,16 +46,17 @@ class QSEQUOIA2DockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     closingPlugin = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, iface, current_project_name, current_style_folder, downloads_path, current_project_folder, parent=None):
         """Constructor."""
         super(QSEQUOIA2DockWidget, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://doc.qt.io/qt-5/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+        self.iface = iface
         self.setupUi(self)
-        self.populate_functions_tree()
+        self.project_name = current_project_name
+        self.current_style_folder = current_style_folder
+        self.downloads_path = downloads_path
+        self.current_project_folder = current_project_folder
+
+
 
         # chemin vers ton logo
         plugin_dir = os.path.dirname(__file__)
@@ -57,108 +66,49 @@ class QSEQUOIA2DockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.setWindowIcon(QIcon(logo_path))
 
 
+        # Créer les widgets pour les onglets existants
+        self.tools_tab = QWidget()
+        self.tools_ui = Ui_ToolsSettingsDialog()
+        self.tools_ui.setupUi(self.tools_tab)
+        self.tools_tab = ToolsSettingsDialog(current_project_name=self.project_name, current_style_folder=self.current_style_folder, downloads_path=self.downloads_path, current_project_folder=self.current_project_folder, iface = self.iface)
+
+        project_settings_tab = QWidget()
+        self.project_settings_ui = Ui_ProjectSettingsDialog()
+        self.project_settings_ui.setupUi(project_settings_tab)
+
+        forest_settings_tab = QWidget()
+        self.forest_settings_ui = Ui_ForestSettingsDialog()
+        self.forest_settings_ui.setupUi(forest_settings_tab)
+
+        self.data_settings_tab = QWidget()
+
+        self.data_settings_tab = AddDataDialog(
+            current_project_name=self.project_name,
+            current_style_folder=self.current_style_folder,
+            downloads_path=self.downloads_path,
+            current_project_folder=self.current_project_folder,
+            parent=self,
+            iface=self.iface)
 
 
-    def populate_functions_tree(self):
-        tree = self.functionsLibrary
-        tree.clear()
+        # Ajouter les onglets + icons au QTabWidget
 
-        # =========================
-        # Traitements bureautique
-        # =========================
-        bureautique = QTreeWidgetItem(tree)
-        bureautique.setText(0, "Gestion de projets")
+        plugin_path = os.path.dirname(__file__)
+        self.tabWidget.addTab(self.tools_tab, QIcon(plugin_path + "/icons/tools_settings.svg"),"")
+        self.tabWidget.setTabToolTip(0, "Outils et fonctions")
+        self.tabWidget.addTab(project_settings_tab, QIcon(plugin_path + "/icons/project_settings.svg"),"")
+        self.tabWidget.setTabToolTip(1, "Paramètres du projet")
+        self.tabWidget.addTab(forest_settings_tab, QIcon(plugin_path + "/icons/forest_settings.svg"),"")
+        self.tabWidget.setTabToolTip(2, "Paramètres forestiers")
+        self.tabWidget.addTab(self.data_settings_tab, QIcon(plugin_path + "/icons/add_data.svg"),"")
+        self.tabWidget.setTabToolTip(3, "Paramètres de données")
 
-        data = [
-            ("📝 Création dossier SIG",
-             "Mise en forme du fichier excel issue du traitement UA vers SSPF"),
-            ("✒️ Rangement final des couches",
-             "Exporte les couches du projet courant en gpkg avec leurs styles")
-
-
-        ]
-        
-        for label, tooltip in data:
-            item = QTreeWidgetItem(bureautique)
-            item.setText(0, label)
-            item.setToolTip(0, tooltip)
-
-        # =========================
-        # Création cartographique
-        # =========================
-        utils = QTreeWidgetItem(tree)
-        utils.setText(0, "Utilitaire python")
-
-        data = [
-            ("🌳Create Qfield project from PARCA or UA",
-             "Crée un projet Qfield depuis le projet"),
-
-            ("🔧Classification des relevées",
-             "Classe les relevées selon des paramètres définis"),
-
-            ("🖥Qfield vers excel et UA",
-             "Mise au propre des relevés réalisé sur le terrain vers un excel et un UA complet"),
-
-            ("📑Classer les ame_type",
-             "Sort un excel de stat de la couche"),
-
-            ("🎄Ajouter la régé",
-             "Ajoute la régé depuis la couche terrain_point"),
-
-            ("0️⃣ Retirer les 0",
-             "retire les 0 de sortie sur la couche SSPF et PARFOR"),
-
-            ("🆗Remplacer le nom des champs",
-             "Remplace le nom d'un champ"),
-
-            ("📏symbologie finale",
-             "ajoute les couches TSE_point, STR_point avec le style"),
-
-            ("📥Data IGN",
-             "Téléchargement de données IGN"),
-
-            ("🧳Reprojection d'un vecteur",
-             "Reprojection d'un vecteur selon un autre CRS"),
-
-            ("📏Détéction de la hauteur dominante",
-             "dans une couche, à partir d'un LIDAR, détéction des hauteurs dominantes depuis un MNH")
-            
-
-        ]
-
-        for label, tooltip in data:
-            item = QTreeWidgetItem(utils)
-            item.setText(0, label)
-            item.setToolTip(0, tooltip)
-
-        # =========================
-        # Outils généraux
-        # =========================
-
-        net = QTreeWidgetItem(tree)
-        net.setText(0, "Outils en ligne")
-
-        data = [
-            ("🔧Kartenn-IA",
-             "Page de l'IA forestière Kartenn"),
-        
-            ("🔧Carto-futaie", 
-             "Page de Carto-Futaie"),
-
-            ("🔧SequoiAPP",
-             "Ouvre la page internet de SequoiAPP")
-        ]
-
-        for label, tooltip in data:
-            item = QTreeWidgetItem(net)
-            item.setText(0, label)
-            item.setToolTip(0, tooltip)
-
-
-
-        tree.expandAll()
 
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
+
+    
+
+
