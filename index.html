@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QSequoia2 — Documentation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- HEADER STICKY -->
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="topbar-brand">
+                <img src="asset/img/icon.png" alt="Logo QSequoia2" class="logo">
+                <div class="topbar-title">
+                    QSequoia2 — Forest Mapping Suite
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO PARALLAX -->
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">QSequoia2</h1>
+            <p class="subtitle">
+                Plugin QGIS complémentaire pour la cartographie forestière
+            </p>
+        </div>
+    </section>
+
+    <main class="layout">
+
+        <!-- TABLE DES MATIÈRES -->
+        <aside class="toc">
+            <h3>Navigation</h3>
+            <ul>
+                <li><a href="#intro">Introduction</a></li>
+                <li><a href="#instal">Installation</a></li>
+                <li><a href="#modules">Modules principaux</a></li>
+                <li><a href="#others">Divers</a></li>
+                <li><a href="#authors">Auteurs</a></li>
+                <li><a href="#links">Liens utiles</a></li>
+            </ul>
+        </aside>
+
+        <!-- CONTENU -->
+        <div class="content">
+            <section id="intro" class="card fade">
+
+                <div class="intro-text">
+                    <h2>Bienvenue dans QSequoia2</h2>
+
+                    <p>
+                        QSequoia2 est un plugin QGIS conçu pour simplifier et structurer les données forestières.
+                        Il fournit un ensemble d’outils pour l’import, la visualisation, la mise en forme et l’analyse
+                        des couches vecteur et raster, ainsi que l’accès à des services web géospatiaux (WMTS/WMS).
+                    </p>
+
+                    <p>
+                        Le plugin est pensé pour répondre aux besoins des forestiers professionnels, des bureaux d’études,
+                        et des gestionnaires de territoires, en combinant automatisation,
+                        flexibilité et respect des standards SIG.
+                    </p>
+
+                    <h3>Fonctionnalités principales :</h3>
+
+                    <h4>Import de données forestières :</h4>
+                    <p>
+                        Ajout rapide et structuré de couches vecteur issues de Rsequoia2 (.shp, .geojson, .gpkg)
+                        et raster (.tif, .img), avec détection automatique des fichiers et organisation
+                        par catégories métiers.
+                    </p>
+
+                    <h4>Application automatique de styles :</h4>
+                    <p>
+                        Configuration d'une bibliothèque de style pour garantir un rendu cohérent et conforme.
+                    </p>
+
+                    <h4>Gestion des services web (WMTS/WMS) :</h4>
+                    <p>
+                        Accès direct aux services cartographiques distants, avec ajout automatique dans le projet
+                        et organisation en groupes. Les utilisateurs peuvent naviguer et charger les fonds de carte
+                        sans configuration manuelle complexe.
+                    </p>
+
+                    <h4>Organisation et gestion de projets</h4>
+                    <p>
+                        Intégration des couches depuis un dossier local dans la structure du projet QGIS,
+                        avec création de groupes thématiques et vérification topologique avancée.
+                        QSequoia2 permet de centraliser l’ensemble des données d’un projet forestier
+                        dans une arborescence intuitive.
+                    </p>
+
+                    <h4>Compatibilité et automatisation :</h4>
+                    <p>
+                        Conçu pour fonctionner sur des projets existants et nouveaux, avec des modules modulaires
+                        qui facilitent l’ajout futur de nouvelles fonctionnalités et outils.
+                    </p>
+
+                    <h3>Personnes visées par QSequoia2</h3>
+
+                    <p>
+                        Destiné au personnes de terrain, gestionnaires forestiers et sylviculteurs souhaitant
+                        centraliser et visualiser leurs données SIG de manière simple et intuitive.
+                    </p>
+
+                    <p>
+                        Le plugin combine simplicité d’usage, robustesse des traitements,
+                        et standardisation des pratiques, afin que chaque utilisateur puisse se concentrer
+                        sur l’analyse et la prise de décision plutôt que sur la gestion fastidieuse des fichiers.
+                    </p>
+
+                    <h3>Cette documentation fournit :</h3>
+
+                    <p>📌 Un guide pas à pas d'installation.</p>
+                    <p>📌 Une description détaillée des modules et de leurs fonctionnalités.</p>
+                    <p>📌 Des pour l’importation et la gestion des données.</p>
+                    <p>📌 Des informations sur l’organisation des styles, des projets et des services web.</p>
+                    <p>📌 Des conseils pour maintenir et mettre à jour le plugin.</p>
+                    <p>📌 Une documentation technique des modules.</p>
+
+                    <p>
+                        Elle est destinée à la fois aux nouveaux utilisateurs et aux professionnels expérimentés
+                        qui souhaitent exploiter pleinement les fonctionnalités de QSequoia2
+                        dans leur environnement QGIS.
+                    </p>
+
+                    <p>
+                        Cette documentation couvre les modules principaux du plugin
+                        et fournit des exemples d'utilisation.
+                    </p>
+                </div>
+
+                <img src="asset/img/Rsequoia2_logo.png"
+                    alt="Logo QSequoia2"
+                    class="logo">
+
+            </section>
+
+        
+
+
+
+            <section id="instal" class="card fade">
+                <h2>Téléchargement et installation</h2>
+
+                <p>
+                    Le plugin est en phase de développement. De nouvelles fonctionnalités apparaissent régulièrement.
+                    En raison de cette phase, il n'est pas encore disponible sur le dépôt officiel QGIS.
+                    Vous pouvez néanmoins télécharger et installer les pré-releases ici :
+                </p>
+
+
+                <section id="install" class="install-grid">
+
+                    <!-- Windows -->
+                    <div class="install-block">
+                        <h3>
+                            Windows
+                            <svg class="os-logo" viewBox="0 0 48 48" fill="#74c69d" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="3" y="6" width="18" height="16" />
+                                <rect x="27" y="6" width="18" height="16" />
+                                <rect x="3" y="26" width="18" height="16" />
+                                <rect x="27" y="26" width="18" height="16" />
+                            </svg>
+                        </h3>
+
+                        <h4>Pré-requis</h4>
+                        <ul>
+                            <li>QGIS 3.34 ou supérieur</li>
+                            <li>Accès à GitHub</li>
+                        </ul>
+
+                        <h4>Installation</h4>
+                        <ul>
+                            <li><a href="https://github.com/SequoiApp/QSEQUOIA-2/releases" target="_blank">Téléchargez la dernière version depuis GitHub Releases</a></li>
+                            <li>Décompressez le dossier dans :  
+                                <code>C:\Users\<nom>\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins\</code>
+                            </li>
+                            <li>Lancez QGIS et activez <strong>QSequoia2</strong> dans les extensions</li>
+                        </ul>
+                    </div>
+
+                    <!-- macOS -->
+                    <div class="install-block">
+                        <h3>
+                            macOS
+                            <svg class="os-logo" viewBox="0 0 48 48" fill="#74c69d" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M32.5 17.2c-2.1 0-4.1 1.2-5.3 1.2-1.3 0-3.3-1.2-5.4-1.2-4.1 0-8.6 3.4-8.6 10.2 0 6.4 4.9 13.6 8.9 13.6 1.7 0 3.1-1.1 5.1-1.1 2 0 3.2 1.1 5.3 1.1 3.9 0 8.5-6.8 8.5-13.1 0-8.4-5.5-10.7-8.5-10.7z"/>
+                                <path d="M30.7 10.3c1-1.3 1.7-3.1 1.7-4.9-1.7.1-3.7 1.2-4.8 2.6-1 1.2-1.8 3-1.8 4.8 1.9.1 3.8-1 4.9-2.5z"/>
+                            </svg>
+                        </h3>
+
+                        <h4>Pré-requis</h4>
+                        <ul>
+                            <li>QGIS installé via Homebrew ou DMG</li>
+                            <li>Accès au dossier plugins utilisateur</li>
+                        </ul>
+
+                        <h4>Installation</h4>
+                        <ul>
+                            <li><a href="https://github.com/SequoiApp/QSEQUOIA-2/releases" target="_blank">Téléchargez la dernière version depuis GitHub Releases</a></li>
+                            <li>Décompressez le dossier dans :  
+                                <code>~/Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins/</code>
+                            </li>
+                            <li>Lancez QGIS et activez <strong>QSequoia2</strong> dans les extensions</li>
+                        </ul>
+                    </div>
+
+                    <!-- Linux -->
+                    <div class="install-block">
+                        <h3>
+                            Linux
+                            <svg class="os-logo" viewBox="0 0 48 48" fill="#74c69d" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M24 4c-5.5 0-10 4.5-10 10v6c-3 2.5-5 6.5-5 11 0 7.2 5.8 13 13 13s13-5.8 13-13c0-4.5-2-8.5-5-11v-6c0-5.5-4.5-10-10-10z"/>
+                                <circle cx="19" cy="17" r="2" fill="#fff"/>
+                                <circle cx="29" cy="17" r="2" fill="#fff"/>
+                                <circle cx="19" cy="17" r="1" fill="#000"/>
+                                <circle cx="29" cy="17" r="1" fill="#000"/>
+                                <path d="M24 22c-2 0-4 1.5-4 3s2 3 4 3 4-1.5 4-3-2-3-4-3z" fill="#000"/>
+                            </svg>
+                        </h3>
+
+                        <h4>Pré-requis</h4>
+                        <ul>
+                            <li>QGIS installé via apt, flatpak ou AppImage</li>
+                            <li>Droits d’écriture dans le dossier plugins</li>
+                        </ul>
+
+                        <h4>Installation</h4>
+                        <ul>
+                            <li><a href="https://github.com/SequoiApp/QSEQUOIA-2/releases" target="_blank">Téléchargez la dernière version depuis GitHub Releases</a></li>
+                            <li>Décompressez le dossier dans : 
+                                <code>~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/</code>
+                            </li>
+                            <li>Lancez QGIS et activez <strong>QSequoia2</strong> dans les extensions</li>
+                        </ul>
+                    </div>
+
+                </section>
+            
+            </section>
+
+            <section id="modules" class="card fade">
+                <h2>Modules principaux</h2>
+
+                <div class="modules-grid">
+
+                    <a class="module-item" href="mod/modules.html#main">
+                        <img src="asset/img/icon.svg" class="module-icon" alt="">
+                        <div>
+                            <h3>Menu principal</h3>
+                            <p>Module et interface principale</p>
+                        </div>
+                    </a>
+
+                    <a class="module-item" href="mod/modules.html#global">
+                        <img src="asset/img/global_settings.svg" class="module-icon" alt="">
+                        <div>
+                            <h3>Paramètres globaux</h3>
+                            <p>Paramètres globaux du plugin</p>
+                        </div>
+                    </a>
+
+                    <a class="module-item" href="mod/modules.html#watchdog">
+                        <img src="asset/img/watchdog_settings.svg" class="module-icon" alt="">
+                        <div>
+                            <h3>Watchdog</h3>
+                            <p>Import dynamique de données</p>
+                        </div>
+                    </a>
+
+                    <a class="module-item" href="mod/modules.html#tools">
+                        <img src="asset/img/tools_settings.svg" class="module-icon" alt="">
+                        <div>
+                            <h3>Outils</h3>
+                            <p>Fonctions utilitaires Python et R</p>
+                        </div>
+                    </a>
+
+                    <a class="module-item" href="mod/modules.html#project">
+                        <img src="asset/img/project_settings.svg" class="module-icon" alt="">
+                        <div>
+                            <h3>Cartographie</h3>
+                            <p>Création de cartographies thématiques</p>
+                        </div>
+                    </a>
+
+                    <a class="module-item" href="mod/modules.html#add_data">
+                        <img src="asset/img/add_data.svg" class="module-icon" alt="">
+                        <div>
+                            <h3>Ajout de données</h3>
+                            <p>Gestion et ajout de couches</p>
+                        </div>
+                    </a>
+
+                    <a class="module-item" href="mod/modules.html#dash">
+                        <img src="asset/img/dash_settings.svg" class="module-icon" alt="">
+                        <div>
+                            <h3>Dashboard</h3>
+                            <p>Statistiques diverses sur la forêt</p>
+                        </div>
+                    </a>
+
+                </div>
+            </section>
+
+            <section id="others" class="card fade">
+                <h2>Divers</h2>
+
+                <div class="others-grid">
+
+
+                    <a class="other-item" href="mod/other.html">
+                        <span class="other-icon">🧪</span>
+                        <div>
+                            <h3>Autres</h3>
+                            <p>Autres informations</p>
+                        </div>
+                    </a>
+
+
+                    <a class="other-item" href="mod/normes.html">
+                        <span class="other-icon">📦</span>
+                        <div>
+                            <h3>Normes</h3>
+                            <p>Normes des fichiers</p>
+                        </div>
+                    </a>
+
+                    <a class="other-item" href="mod/tech.html">
+                        <span class="other-icon">⚙️</span>
+                        <div>
+                            <h3>Documentation technique</h3>
+                            <p>Listes des classes python</p>
+                        </div>
+                    </a>
+
+                </div>
+            </section>
+
+
+            <section id="authors" class="card fade">
+                <h2>Auteurs</h2>
+                <ul>
+                    <li>Alexandre Le Bars — Comité des Forêts (<a href="mailto:alexlb329@gmail.com">alexlb329@gmail.com</a>)</li>
+                    <li>Paul Carteron — Racines experts forestiers associés(<a href="mailto:carteronpaul@gmail.com">carteronpaul@gmail.com</a>)</li>
+                    <li>Matthieu Chevereau — Caisse des dépôts et consignations(<a href="mailto:matthieu.chevereau@hotmail.fr">matthieu.chevereau@hotmail.fr</a>)</li>
+                </ul>
+
+            </section>
+
+            <section id="links" class="card fade">
+                <h2>Liens utiles</h2>
+                <ul class="links-list">
+                    <li>
+                        <a href="https://github.com/SequoiAPP" target="_blank">
+                            <span class="icon">
+                                <!-- Logo GitHub SVG -->
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2.1c-3.2.7-3.9-1.4-3.9-1.4-.5-1.2-1.2-1.6-1.2-1.6-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 .1.5 1.9 2.9 1.9 1.4 0 2.3-.6 2.7-1.2-2.6-.3-5.3-1.3-5.3-5.9 0-1.3.5-2.4 1.2-3.3-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.2 11.2 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8.1 3.1.8.9 1.2 2 1.2 3.3 0 4.6-2.7 5.6-5.3 5.9.4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6A10.9 10.9 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/>
+                                </svg>
+                            </span>
+                            Repo GitHub
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="https://github.com/SequoiAPP/qsequoia2/issues" target="_blank">
+                            <span class="icon">
+                                <!-- Icône bug -->
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M20 8h-2.81A5.995 5.995 0 0 0 13 4.1V2h-2v2.1A5.995 5.995 0 0 0 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81A5.995 5.995 0 0 0 11 19.9V22h2v-2.1A5.995 5.995 0 0 0 17.19 17H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2V8zm-8 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
+                                </svg>
+                            </span>
+                            Signaler un bug
+                        </a>
+                    </li>
+                </ul>
+            </section>
+        </div>
+
+    </main>
+
+    <footer>
+        <div class="footer-left">
+            © 2025 QSequoia2 — Tous droits réservés
+        </div>
+
+        <div class="footer-right">
+             Techfolio & Digital Workspace : Alexandre Le Bars
+        </div>
+    </footer>
+
+</body>
+</html>
+
