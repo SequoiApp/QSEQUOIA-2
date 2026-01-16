@@ -1,0 +1,83 @@
+Gestion de projet:
+  "Création dossier SIG":
+    module: "qsequoia2.scripts.tools_settings.PY.create_SIG_folder"
+    function: "create_SIG_folder"
+    skip_check: False
+
+  Rangement final des couches:
+    module:
+    function:
+    skip_check: False
+
+Utilitaire:
+  "Create Qfield project from PARCA or UA":
+    module: "qsequoia2.scripts.tools_settings.PY.script_TERRAIN_POINT"
+    function: "create_terrain"
+    skip_check: False
+
+  "Classification des relevées":
+    module: "qsequoia2.scripts.tools_settings.PY.records_orchestrator"
+    function: "records_orchestrator"
+    skip_check: False
+  
+  "Qfield vers excel et UA":
+    module:
+    function:
+    skip_check: False
+
+  "Ajout de point de régé":
+    module:
+    function:
+    skip_check: False
+
+  "remplacer le nom des champs...":
+    module:
+    function:
+    skip_check: False
+
+  "Symbologie finale":
+    module:
+    function:
+    skip_check: False
+
+  "Télécharger des données IGN":
+    module:
+    function:
+    skip_check: False
+
+  "Reprojection vecteur":
+    module:
+    function:
+    skip_check: False
+
+  "Reprojection raster":
+    module:
+    function:
+    skip_check: False
+
+  "Detection de la hauteur dominante":
+    module:
+    function:
+    skip_check: False
+
+  "Création d'une carte de station":
+    module:
+    function:
+    skip_check: False
+
+Outils web principaux:
+  "Carto-futaie":
+    module: "qsequoia2.scripts.utils.go_to_net"
+    function: "go_to_cartofutaie"
+    skip_check: True
+
+  "Télédetection des essences par IA":
+    module: "qsequoia2.scripts.utils.go_to_net"
+    function: "go_to_kartennAI"
+    skip_check: True
+
+  "SequoiAPP":
+    module: "qsequoia2.scripts.utils.go_to_net"
+    function: "go_to_SequoiAPP"
+    skip_check: True
+    
