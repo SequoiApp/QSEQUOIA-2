@@ -81,7 +81,7 @@ def create_terrain(project_name: str, style_folder, dockwidget=None, iface=None)
         raise ValueError("Nom du projet et chemin du projet doivent être fournis.")
 
 
-    # 1️⃣ Création du dossier TERRAIN
+    # 1️ Création du dossier TERRAIN
     chemin_complet = os.path.join(dossier_projet, f"{nom_projet}_TERRAIN")
     os.makedirs(chemin_complet, exist_ok=True)
     print(f"Création du dossier TERRAIN : {chemin_complet}")
@@ -96,13 +96,13 @@ def create_terrain(project_name: str, style_folder, dockwidget=None, iface=None)
                 creer_dossiers(chemin_dossier, sous_dossiers)
     creer_dossiers(chemin_complet, structure)
 
-    # 2️⃣ Copier le template QGIS
-    template_path = os.path.join(os.path.dirname(__file__), "../../data/template/TERRAIN.qgz")
+    # 2️ Copier le template QGIS
+    template_path = os.path.join(os.path.dirname(__file__), "../../../data/template/TERRAIN.qgz")
     dest_template = os.path.join(chemin_complet, f"{nom_projet}_TERRAIN.qgz")
     shutil.copyfile(template_path, dest_template)
     print(f"Template copié : {dest_template}")
 
-    # 3️⃣ Copier UA (si les noms de projet correspondent)
+    # 3️ Copier UA (si les noms de projet correspondent)
 
     dest = os.path.join(chemin_complet, "2 VECTEUR")
     os.makedirs(dest, exist_ok=True)
@@ -133,14 +133,14 @@ def create_terrain(project_name: str, style_folder, dockwidget=None, iface=None)
 
 
 
-    # 4️⃣ Charger UA
+    # 4️ Charger UA
     ua_path = os.path.join(dest, f"{nom_projet}_UA_polygon.shp" or f"{nom_projet}_UA_polygon.gpkg")
     ua_layer = QgsVectorLayer(ua_path, "UA", "ogr")
     if not ua_layer.isValid():
         raise FileNotFoundError(f"Couche UA invalide : {ua_path}")
 
 
-    # 5️⃣ Demande de l'espacement via PyQt (MODAL)
+    # 5️ Demande de l'espacement via PyQt (MODAL)
     spacing = None
 
     dialog = QDialog(dockwidget)
@@ -175,7 +175,7 @@ def create_terrain(project_name: str, style_folder, dockwidget=None, iface=None)
 
     print(f"Espacement choisi : {spacing}")
 
-    # 6️⃣ Génération de la grille de points
+    # 6️ Génération de la grille de points
     bounds = ua_layer.extent()
     xmin, ymin, xmax, ymax = bounds.xMinimum(), bounds.yMinimum(), bounds.xMaximum(), bounds.yMaximum()
 
@@ -217,12 +217,12 @@ def create_terrain(project_name: str, style_folder, dockwidget=None, iface=None)
     print(f"{fid-1} points générés dans TERRAIN_point")
 
 
-    # 7️⃣ Sauvegarde GPKG
+    # 7️ Sauvegarde GPKG
     points_gpkg_path = os.path.join(chemin_complet, "2 VECTEUR", f"{nom_projet}_TERRAIN_point.gpkg")
     QgsVectorFileWriter.writeAsVectorFormat(points_layer, points_gpkg_path, "UTF-8", points_layer.crs(), "GPKG")
     print("GPKG TERRAIN_point créé :", points_gpkg_path)
 
-    # 8️⃣ Ajout au projet QGIS et application des styles
+    # 8️ Ajout au projet QGIS et application des styles
     project = QgsProject.instance()
 
 
@@ -274,7 +274,7 @@ def create_terrain(project_name: str, style_folder, dockwidget=None, iface=None)
 
         project.addMapLayer(terrain_layer)
 
-    # 9️⃣ Champ "statut"
+    # 9️ Champ "statut"
     if "statut" in [f.name() for f in terrain_layer.fields()]:
         terrain_layer.startEditing()
         for f in terrain_layer.getFeatures():

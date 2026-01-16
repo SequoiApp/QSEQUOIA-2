@@ -13,8 +13,8 @@ seq_path:
 seq_tables:
   url: "https://raw.githubusercontent.com/SequoiApp/Rsequoia2/main/inst/config/seq_tables.yaml"
 
-qseq_URLS:
-  url: "https://raw.githubusercontent.com/SequoiApp/Qsequoia2/refs/heads/main/qsequoia2/inst/qseq_URLS.yaml"
+#qseq_URLS:
+#  url: "https://raw.githubusercontent.com/SequoiApp/Qsequoia2/refs/heads/main/qsequoia2/inst/qseq_URLS.yaml"
 
 qseq_fields:
   url: "https://raw.githubusercontent.com/SequoiApp/Qsequoia2/refs/heads/main/qsequoia2/inst/qseq_fields.yaml"
@@ -28,5 +28,6 @@ qseq_tables:
 qseq_path:
   url: "https://raw.githubusercontent.com/SequoiApp/Qsequoia2/refs/heads/main/qsequoia2/inst/qseq_path.yaml"
 
-
+qseq_functions:
+  url: "https://raw.githubusercontent.com/SequoiApp/Qsequoia2/refs/heads/main/qsequoia2/inst/qseq_functions.yaml"
 
