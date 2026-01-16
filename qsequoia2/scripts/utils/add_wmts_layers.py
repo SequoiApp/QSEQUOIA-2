@@ -1,3 +1,16 @@
+"""
+Module `load_wmts` : fonctions pour charger des couches WMTS dans QGIS.
+
+Auteur : Alexandre Le Bars - Comité des Forêts
+        Paul Carteron - Racines experts forestiers associés
+        Matthieu Chevereau - Caisse des dépôts et consignation
+Email : alexlb329@gmail.com
+
+Fonctionnalité :
+- Charger des couches WMTS depuis le fichier de configuration wmts.yaml
+- Ajouter les couches au projet QGIS
+- Créer un groupe optionnel pour les couches
+"""
 
 from qgis.core import (
     QgsProject,
@@ -12,9 +25,19 @@ from .config import get_wmts
 
 def load_wmts(label, group_name = None):
     """
-    Load WMTS layers by key (from wmts.yaml) into the project.
-    If group_name is given, layers go into that group (hidden at root); 
-    otherwise they appear at the root legend.
+    Charge des couches WMTS dans le projet QGIS.
+
+    La fonction :
+    - Cherche la configuration WMTS dans `wmts.yaml` via get_wmts
+    - Crée un groupe si nécessaire
+    - Ajoute les couches au projet et dans le groupe
+    - Ignore les couches déjà chargées
+    - Notifie les erreurs via QgsMessageLog
+
+    Args:
+        label (list[str]): liste des clés des couches WMTS à charger
+        group_name (str, optional): nom du groupe QGIS où ajouter les couches
+
     """
     project = QgsProject.instance()
     root = project.layerTreeRoot()

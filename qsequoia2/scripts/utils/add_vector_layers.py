@@ -1,5 +1,10 @@
-# la fonction add_layer récupère les couches ajoutées dans le dossier temporaire, 
-# recherche les styles dans le dossier de style, les appliques, et ajoute les couches au projet courant
+"""
+Module `load_vectors` : fonctions pour charger des couches vecteur dans QGIS
+avec application automatique des styles.
+
+Auteur : Alexandre Le Bars - Comité des Forêts, Paul Carteron - Racines experts forestiers associés, Matthieu Chevereau - Caisse des dépôts et consignation
+Email : alexlb329@gmail.com
+"""
 from pathlib import Path
 from qgis.core import (
     QgsProject,
@@ -11,6 +16,28 @@ from .config import get_style
 
 
 def load_vectors(layer_path, style_folder, project_folder, project_name, group_name=None, parent=None):
+    """
+    Charge des couches vecteur dans le projet QGIS.
+
+    La fonction :
+    - Crée un groupe si nécessaire
+    - Applique le style correspondant (.qml) avant d'ajouter la couche
+    - Ajoute la couche au projet et dans le groupe
+    - Notifie les erreurs via QgsMessageLog
+
+    Args:
+        layer_path (dict): dictionnaire {label: chemin_fichier} des vecteurs à charger
+        style_folder (str): dossier contenant les styles (.qml)
+        project_folder (str): dossier racine du projet
+        project_name (str): nom du projet courant
+        group_name (str, optional): nom du groupe QGIS où ajouter les couches
+        parent (QWidget, optional): widget parent pour les messages (non utilisé ici)
+
+    Returns:
+        list: liste des clés (labels) des vecteurs chargés avec succès
+
+    Auteur : Alexandre Le Bars - Comité des Forêts
+    """
 
     project = QgsProject.instance()
     root = project.layerTreeRoot()

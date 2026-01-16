@@ -1,4 +1,9 @@
+"""
+Module `load_rasters` : fonctions pour charger des rasters dans QGIS avec style automatique.
 
+Auteur : Alexandre Le Bars - Comité des Forêts, Paul Carteron - Racines experts forestiers associés, Matthieu Chevereau - Caisse des dépôts et consignation
+Email : alexlb329@gmail.com
+"""
 from qgis.core import (
     QgsProject,
     QgsRasterLayer,
@@ -12,7 +17,25 @@ from .config import get_style
 
 def load_rasters(layer_path, project_folder, project_name, style_folder, group_name=None, parent=None):
     """
-    Load raster layers into the QGIS project. Create group if at least one raster is valid.
+    Charge des couches raster dans le projet QGIS.
+
+    La fonction :
+    - Crée un groupe si nécessaire
+    - Applique le style correspondant (.qml) avant d'ajouter la couche
+    - Ajoute la couche au projet et dans le groupe
+    - Notifie les erreurs via QgsMessageLog
+
+    Args:
+        layer_path (dict): dictionnaire {label: chemin_fichier} des rasters à charger
+        project_folder (str): dossier racine du projet
+        project_name (str): nom du projet courant
+        style_folder (str): dossier contenant les styles (.qml)
+        group_name (str, optional): nom du groupe QGIS où ajouter les couches
+        parent (QWidget, optional): widget parent pour les messages (non utilisé ici)
+
+    Returns:
+        list: liste des clés (labels) des rasters chargés avec succès
+
     """
     project = QgsProject.instance()
     root = project.layerTreeRoot()
