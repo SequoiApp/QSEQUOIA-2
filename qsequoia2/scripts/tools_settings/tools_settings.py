@@ -123,7 +123,7 @@ class ToolsSettingsDialog(QWidget):
         category = parent.text(0) if parent else None
 
         if category == "Outils web principaux":
-            go_to_net(action)
+            go_to_net(action, self.iface)
             return
 
         self.call_functions(action, category)
