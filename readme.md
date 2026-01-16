@@ -1,6 +1,6 @@
 
 
-# Qsequoia2 <img src="qsequoia2/icon.png" align="right" height="138"/>
+# Qsequoia2 <img src="qsequoia2/icons/Qsequoia.png" align="right" height="138"/>
 
 <!-- badges: start -->
 📥 download the latest version
