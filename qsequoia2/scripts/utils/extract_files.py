@@ -28,49 +28,16 @@ from qgis.PyQt.QtWidgets import QFileDialog
 
 
 from .add_vector_layers import load_vectors
+from .add_raster_layers import load_rasters
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+def extract_files():
+    """"""
 
+def show_add_banner(project_folder, downloads_path, project_name, style_folder, _zip_path, dockwidget):
 
-
-def extract_files(downloads_path, project_name, style_folder,project_folder,dockwidget=None):
-
-    #---------------------------------------
-
-    #boucle de surveillance : 
-
-    zip_path = None
-
-    for file in os.listdir(downloads_path):
-        if file.lower().endswith(".zip") and project_name.lower() in file.lower() :
-            zip_path = os.path.join(downloads_path, file)
-
-            # --- Test 1 : ZIP récent (moins de 30 secondes)
-            age_seconds = time.time() - os.path.getmtime(zip_path)
-            if age_seconds > 30:
-                continue  # trop vieux, on ignore
-
-            # --- Test : ZIP complet (taille stable)
-            size1 = os.path.getsize(zip_path)
-            time.sleep(0.5)  # petite pause
-            size2 = os.path.getsize(zip_path)
-
-            if size1 != size2:
-                print("\nExtract_files indique => ZIP encore en téléchargement :", file)
-                continue  # on attend le prochain cycle
-            print("\nExtract_files indique => ZIP détecté et prêt :", file)
-
-            # Appel de l'affichage du message dans le thread principal de QGIS
-
-            #show_add_banner(project_folder, downloads_path, project_name, style_folder, zip_path, dockwidget)
-            return
-    return
-    #---------------------------------------
-# A revoir car interaction thread QGIS
-
-def show_add_banner(project_folder, downloads_path, project_name, style_folder, zip_path, dockwidget):
     print("Affichage du bandeau d'ajout des couches...")
 
     bar = iface.messageBar()
@@ -89,7 +56,7 @@ def show_add_banner(project_folder, downloads_path, project_name, style_folder, 
                 project_name,
                 style_folder,
                 project_folder,
-                zip_path,
+                _zip_path,
                 dockwidget
             )
         except Exception as e:
@@ -102,50 +69,92 @@ def show_add_banner(project_folder, downloads_path, project_name, style_folder, 
 
 
 
-def real_extract_files(downloads_path, project_name, style_folder, project_folder, zip_path, dockwidget=None):
+def real_extract_files(downloads_path, project_name, style_folder, project_folder, _zip_path, dockwidget=None):
 
 
-    # --- Extraction dans dossier temporaire ---
-    if project_folder == None :
-        def_folder = QFileDialog.getExistingDirectory(dockwidget, "Sélectionner le dossier de stockage des fichiers")
+    # --- Extraction dans dossier ---
 
-        temp_folder = os.path.join(def_folder, f"{project_name}_extract_output")
-    else : 
-        temp_folder = os.path.join(project_folder, f"{project_name}_extract_output")
+    def_folder = QFileDialog.getExistingDirectory(dockwidget, "Sélectionner le dossier de stockage des fichiers")
 
-    if os.path.exists(temp_folder):
-        return
-                
+    extr_folder = os.path.join(def_folder)
 
-    os.makedirs(temp_folder, exist_ok=True)
-    print(f"\nExtract_files indique => dossier tempo == {temp_folder}")
+    print(f"\nExtract_files indique => Rangement vers : {extr_folder}")
 
-    with zipfile.ZipFile(zip_path, 'r') as z:
-        z.extractall(temp_folder)
+    # Fichiers avant extraction
+    before_files = set(os.listdir(extr_folder))
 
-    # appel de add_layers pour ajouter les couches extraites: 
+    # Extraction
+    with zipfile.ZipFile(_zip_path, 'r') as z:
+        z.extractall(extr_folder)
+
+    # Fichiers après extraction
+    after_files = set(os.listdir(extr_folder))
+
+    # Nouveaux fichiers
+    new_files = after_files - before_files
+
+    # Chemins complets
+    new_files_path = [
+        os.path.join(extr_folder, f)
+        for f in new_files
+        if os.path.isfile(os.path.join(extr_folder, f))
+    ]
+
+    # Détection des extensions
+    vector_ext = {".shp", ".geojson", ".gpkg", ".kml",".las",".laz"}
+    raster_ext = {".tiff", ".tif", ".png"}
+
+    def get_extension(path):
+        return os.path.splitext(path)[1].lower()
 
     # Créer le message
     bar = iface.messageBar()
     message = bar.createMessage(
         "[Watchdog] ",
-        f"Fichiers déplacés vers : {temp_folder}"
+        f"Fichiers déplacés vers : {extr_folder}"
     )
 
-    # Bouton 1
+    # Bouton
     btn_ok = QPushButton("Ouvrir ici")
-    btn_ok.clicked.connect(lambda: (
-        print("ouverture...(appel de add_layers)"),
-        load_vectors(downloads_path, project_name, project_folder, temp_folder, style_folder, dockwidget=None),
+
+    def on_click():
+        # Vecteurs
+        print(">>> on_click() déclenché")
+        if any(get_extension(f) in vector_ext for f in new_files_path):
+
+            layer_path = {os.path.splitext(os.path.basename(f))[0]: f for f in new_files_path if get_extension(f) in vector_ext}
+            print("appel de load_vector")
+            load_vectors(layer_path, style_folder, project_folder, project_name, group_name=None, parent=dockwidget)
+
+        # Rasters
+        if any(get_extension(f) in raster_ext for f in new_files_path):
+
+            layer_path = {
+                os.path.splitext(os.path.basename(f))[0]: f
+                for f in new_files_path
+                if get_extension(f) in raster_ext
+            }
+
+            load_rasters(
+                layer_path,
+                project_folder,
+                project_name,
+                style_folder,
+                group_name=None,
+                parent=dockwidget)
 
         bar.popWidget(message)
-    ))
+
+    btn_ok._callback = on_click
+
+    btn_ok.clicked.connect(btn_ok._callback)
 
 
-    # Ajouter les boutons au bandeau
+
+    # Ajouter le bouton
     message.layout().addWidget(btn_ok)
 
-    # Afficher le bandeau (niveau SUCCESS = vert)
+    # Afficher
     bar.pushWidget(message, Qgis.Success)
 
 

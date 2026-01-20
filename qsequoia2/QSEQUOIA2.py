@@ -6,11 +6,14 @@ from qgis.PyQt.QtWidgets import QAction
 from qgis.core import QgsApplication, Qgis
 from qgis.PyQt.QtWidgets import QMessageBox,QFileDialog
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QThread, QMetaObject, Qt, pyqtSlot
+
 import yaml, timer
 
 from qsequoia2.scripts.global_settings.global_settings import GlobalSettingsDialog
 from qsequoia2.scripts.utils.variable import get_global_variable
+from qsequoia2.scripts.watchdog.dogwatcher import DogWatcher
+
 
 
 
@@ -27,7 +30,7 @@ from .scripts.utils.connect_label import connect_label
 
 from .scripts.utils.get_download_folder import get_download_folder
 
-from .scripts.utils.extract_files import extract_files
+from .scripts.utils.extract_files import show_add_banner
 
 from .scripts.utils.add_seq_config import add_seq_config
 
@@ -91,8 +94,6 @@ class QSEQUOIA2:
         # Watchdog
         self.watch_mode = "auto"
         # valeurs possibles : "auto", "downloads", "project"
-
-
         self.observer = None
         self.watch_path = None
 
@@ -109,15 +110,24 @@ class QSEQUOIA2:
         print(" \n==> Style folder at init:", self.current_style_folder)
         self.current_project_folder = None
 
-        self.watcher = QTimer()
-        self.watcher.timeout.connect(self.check_downloads)
+
 
         self.downloads_path = get_download_folder()
         print("Téléchargements :", self.downloads_path)
         self.connect_dialog = None
 
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.check_downloads)
+
+        self.watcher = QTimer()
+        self._zip_in_progress = None
+        self.pending_zips = []
+
+        self.watcher = QTimer(self.iface.mainWindow())
+        self.watcher.setInterval(500)
+        self.watcher.timeout.connect(self.process_pending_zips)
+        self.watcher.start()
+
+        #self.timer = QTimer()
+        #self.timer.timeout.connect(self.check_downloads)
 
 
         # TODO: We are going to let the user set this up in a future iteration
@@ -502,13 +512,17 @@ class QSEQUOIA2:
 
         self.watch_path = watch_path
 
+
     def stop_watcher(self):
-        if hasattr(self, "observer") and self.observer:
+        if self.observer:
             self.observer.stop()
             self.observer.join()
-            print("[watchdog] Surveillance arrêtée")
+            print("[watchdog] Surveillance watchdog arrêtée")
             self.observer = None
 
+        if hasattr(self, "zip_timer") and self.zip_timer:
+            self.zip_timer.stop()
+            print("[watchdog] Timer ZIP arrêté")
 
 
     def restart_watcher(self):
@@ -516,12 +530,70 @@ class QSEQUOIA2:
         self.start_watcher()
 
 
-    def check_downloads(self):
-        extract_files(
-            downloads_path=self.downloads_path,
-            project_name=self.current_project_name,
-            style_folder = self.current_style_folder,
-            project_folder = self.current_project_folder,
+    def process_pending_zips(self):
+        if not self.pending_zips:
+            return
 
-            )
+        # On prend le dernier ZIP en attente
+        zip_path = self.pending_zips.pop(0)
+        self.handle_zip(zip_path)
+
+
+
+    def handle_zip(self, zip_path):
+        filename = os.path.basename(zip_path)
+
+        if not self.current_project_name:
+            print("[watchdog] Projet vide → ZIP ignoré")
+            return
+
+        if self.current_project_name.lower() not in filename.lower():
+            print("[watchdog] ZIP ignoré (ne correspond pas au projet)")
+            return
+
+        if getattr(self, "_zip_in_progress", None) == zip_path:
+            print("[watchdog] ZIP déjà en cours de vérification → ignoré")
+            return
+
+        print("[watchdog] Vérification de la stabilité du ZIP…")
+
+        self._zip_in_progress = zip_path
+        self._zip_path = zip_path
+        self._last_size = -1
+
+        self.zip_timer = QTimer(self.iface.mainWindow())
+        self.zip_timer.setInterval(500)
+        self.zip_timer.timeout.connect(self.check_zip_stable)
+        self.zip_timer.start()
+    
+
+    def check_zip_stable(self):
+        print("[DEBUG] check_zip_stable thread =", QThread.currentThread())
+        try:
+            size = os.path.getsize(self._zip_path)
+        except FileNotFoundError:
+            print("[watchdog] ZIP disparu → abandon")
+            self.zip_timer.stop()
+            self._zip_in_progress = None
+            return
+
+        if size == self._last_size:
+            print("[watchdog] ZIP stable → émission du signal")
+
+            self.zip_timer.stop()
+
+            show_add_banner(
+                project_folder=str(self.current_project_folder),
+                downloads_path=str(self.downloads_path),
+                project_name=str(self.current_project_name),
+                style_folder=str(self.current_style_folder),
+                _zip_path=self._zip_path,
+                dockwidget=None)
+
+
+            # Libérer le verrou
+            self._zip_in_progress = None
+            return
+
+        self._last_size = size
 
