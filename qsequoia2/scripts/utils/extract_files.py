@@ -1,64 +1,60 @@
-# La fonction extract_files permet de détécter l'arrivé d'un ZIP ayant le même nom de projet dans le dossier de téléchargement de l'utilisateur
+"""
+extract_files.py
+================
 
-# Lorsqu'un tel ZIP est détecté, un message s'affiche dans QGIS demandant à l'utilisateur s'il souhaite extraire les fichiers
+Détection et extraction automatique des ZIPs pour le plugin QSEQUOIA2.
 
-# Si l'utilisateur clique sur "Ranger les couches", le ZIP est extrait dans un dossier temporaire du choix de l'utilisateur
+- Surveille les fichiers ZIP arrivant dans le dossier de téléchargements.
+- Affiche un bandeau dans QGIS pour demander à l'utilisateur s'il souhaite
+  extraire les fichiers.
+- Si accepté, les fichiers sont extraits dans un dossier choisi et ajoutés
+  dans QGIS (vecteurs et rasters).
 
-# La fonction en appelle une autre pour ajouter les couches avec leurs styles dans QGIS
+Auteur : Alexandre Le Bars - Comité des Forêts
+Projet : Kartenn
+Année : 2026
+Email : alexlb329@gmail.com
+"""
 
-# Attention s'execute dans le thread watchdog, il faut faire attention aux interactions avec l'interface QGIS
+import zipfile, os
 
-# Alexandre Le bars
-# Kartenn
-# 2026
-# alexlb329@gmail.com
-
-import zipfile
-from pathlib import Path
-from PyQt5.QtCore import QTimer
-from qgis.PyQt.QtWidgets import QFileDialog
-import os, time, shutil
-from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QFileDialog, QPushButton, QWidget
 from qgis.core import Qgis
 from qgis.utils import iface
-from qgis.PyQt.QtWidgets import QFileDialog
-
-
-
 
 
 from .add_vector_layers import load_vectors
 from .add_raster_layers import load_rasters
 
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-
-def extract_files():
-    """"""
 
 def show_add_banner(project_folder, downloads_path, project_name, style_folder, _zip_path, dockwidget):
+    """
+    Affiche le bandeau dans QGIS pour proposer à l'utilisateur
+    d'extraire un ZIP détecté.
 
-    print("Affichage du bandeau d'ajout des couches...")
+    :param project_folder: chemin du projet QGIS
+    :param downloads_path: dossier de téléchargements surveillé
+    :param project_name: nom du projet courant
+    :param style_folder: dossier des styles
+    :param _zip_path: chemin du ZIP détecté
+    :param dockwidget: référence au dockwidget QGIS (peut être None)
+    """
 
     bar = iface.messageBar()
+
+
     message = bar.createMessage(
         "[Watchdog] ",
         f"Ajout détecté dans : {downloads_path}. Que voulez-vous faire ?"
     )
 
+
     btn_ok = QPushButton("Ranger les couches")
 
     def on_click():
-        print("Rangement...")
+
         try:
-            real_extract_files(
-                downloads_path,
-                project_name,
-                style_folder,
-                project_folder,
-                _zip_path,
-                dockwidget
-            )
+            real_extract_files(downloads_path, project_name, style_folder, project_folder,_zip_path,dockwidget)
         except Exception as e:
             print("Erreur dans real_extract_files :", e)
         bar.popWidget(message)
@@ -67,89 +63,91 @@ def show_add_banner(project_folder, downloads_path, project_name, style_folder, 
     message.layout().addWidget(btn_ok)
     bar.pushWidget(message, Qgis.Success)
 
+    # Supprime le message
+    #bar.popWidget(message)
+
 
 
 def real_extract_files(downloads_path, project_name, style_folder, project_folder, _zip_path, dockwidget=None):
+    """
+    Extrait les fichiers d'un ZIP dans un dossier choisi par l'utilisateur
+    et les charge dans QGIS.
 
-
+    :param downloads_path: dossier de téléchargements
+    :param project_name: nom du projet courant
+    :param style_folder: dossier des styles
+    :param project_folder: chemin du projet QGIS
+    :param _zip_path: chemin du ZIP à traiter
+    :param dockwidget: dockwidget QGIS pour parent des dialogues
+    """
     # --- Extraction dans dossier ---
-
     def_folder = QFileDialog.getExistingDirectory(dockwidget, "Sélectionner le dossier de stockage des fichiers")
+    if not def_folder:
+        print("Aucun dossier sélectionné.")
+        return
 
-    extr_folder = os.path.join(def_folder)
-
+    extr_folder = os.path.abspath(def_folder)
     print(f"\nExtract_files indique => Rangement vers : {extr_folder}")
 
-    # Fichiers avant extraction
-    before_files = set(os.listdir(extr_folder))
+    # Fichiers avant extraction (récursif, chemins complets)
+    before_files_all = set()
+    for root, dirs, files in os.walk(extr_folder):
+        for f in files:
+            before_files_all.add(os.path.join(root, f))
 
-    # Extraction
+    # --- Extraction du zip ---
     with zipfile.ZipFile(_zip_path, 'r') as z:
         z.extractall(extr_folder)
 
-    # Fichiers après extraction
-    after_files = set(os.listdir(extr_folder))
+    # Fichiers après extraction (récursif, chemins complets)
+    after_files_all = set()
+    for root, dirs, files in os.walk(extr_folder):
+        for f in files:
+            after_files_all.add(os.path.join(root, f))
 
-    # Nouveaux fichiers
-    new_files = after_files - before_files
-
-    # Chemins complets
-    new_files_path = [
-        os.path.join(extr_folder, f)
-        for f in new_files
-        if os.path.isfile(os.path.join(extr_folder, f))
-    ]
+    # Nouveaux fichiers extraits uniquement
+    new_files_path = list(after_files_all - before_files_all)
+    print("Nouveaux fichiers extraits :", new_files_path)
 
     # Détection des extensions
-    vector_ext = {".shp", ".geojson", ".gpkg", ".kml",".las",".laz"}
+    vector_ext = {".shp", ".geojson", ".gpkg", ".kml", ".las", ".laz"}
     raster_ext = {".tiff", ".tif", ".png"}
 
     def get_extension(path):
         return os.path.splitext(path)[1].lower()
 
-    # Créer le message
+    # --- Message dans la barre QGIS ---
     bar = iface.messageBar()
-    message = bar.createMessage(
-        "[Watchdog] ",
-        f"Fichiers déplacés vers : {extr_folder}"
-    )
+    message = bar.createMessage("[Extract_files] ", f"Fichiers déplacés vers : {extr_folder}")
 
-    # Bouton
+    # Bouton pour ouvrir le dossier
     btn_ok = QPushButton("Ouvrir ici")
 
     def on_click():
-        # Vecteurs
-        print(">>> on_click() déclenché")
-        if any(get_extension(f) in vector_ext for f in new_files_path):
 
-            layer_path = {os.path.splitext(os.path.basename(f))[0]: f for f in new_files_path if get_extension(f) in vector_ext}
-            print("appel de load_vector")
+        # Vecteurs
+        vector_files = [f for f in new_files_path if get_extension(f) in vector_ext]
+        if vector_files:
+            print("\nVecteurs détectés :", vector_files)
+            layer_path = {os.path.splitext(os.path.basename(f))[0]: f for f in vector_files}
             load_vectors(layer_path, style_folder, project_folder, project_name, group_name=None, parent=dockwidget)
 
         # Rasters
-        if any(get_extension(f) in raster_ext for f in new_files_path):
+        raster_files = [f for f in new_files_path if get_extension(f) in raster_ext]
+        if raster_files:
+            print("\nRasters détectés :", raster_files)
+            layer_path = {os.path.splitext(os.path.basename(f))[0]: f for f in raster_files}
+            load_rasters(layer_path, project_folder, project_name, style_folder, group_name=None, parent=dockwidget)
 
-            layer_path = {
-                os.path.splitext(os.path.basename(f))[0]: f
-                for f in new_files_path
-                if get_extension(f) in raster_ext
-            }
-
-            load_rasters(
-                layer_path,
-                project_folder,
-                project_name,
-                style_folder,
-                group_name=None,
-                parent=dockwidget)
-
+        # Supprime le message
         bar.popWidget(message)
+
+    
+    # Appel du boutton
 
     btn_ok._callback = on_click
 
     btn_ok.clicked.connect(btn_ok._callback)
-
-
 
     # Ajouter le bouton
     message.layout().addWidget(btn_ok)

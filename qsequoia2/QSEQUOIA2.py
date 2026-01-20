@@ -94,8 +94,7 @@ class QSEQUOIA2:
         # Watchdog
         self.watch_mode = "auto"
         # valeurs possibles : "auto", "downloads", "project"
-        self.observer = None
-        self.watch_path = None
+
 
 
         self.current_project_name = None
@@ -111,23 +110,16 @@ class QSEQUOIA2:
         self.current_project_folder = None
 
 
-
+        # Création du watchdog
         self.downloads_path = get_download_folder()
         print("Téléchargements :", self.downloads_path)
         self.connect_dialog = None
 
+        self.dogwatcher = DogWatcher(iface=self.iface, get_context_callback=self.get_watchdog_context, parent=None)
 
-        self.watcher = QTimer()
-        self._zip_in_progress = None
-        self.pending_zips = []
 
-        self.watcher = QTimer(self.iface.mainWindow())
-        self.watcher.setInterval(500)
-        self.watcher.timeout.connect(self.process_pending_zips)
-        self.watcher.start()
 
-        #self.timer = QTimer()
-        #self.timer.timeout.connect(self.check_downloads)
+
 
 
         # TODO: We are going to let the user set this up in a future iteration
@@ -408,8 +400,9 @@ class QSEQUOIA2:
         
 
         # redémarrer le watcher
-        if self.watcher is not None:
-            self.restart_watcher()
+        if self.dogwatcher:
+            self.dogwatcher.restart()
+
 
             print(f"Project name => {self.current_project_name}")
 
@@ -441,8 +434,9 @@ class QSEQUOIA2:
 
 
         if text:  # éviter de lancer sur vide
-            if self.watcher is not None:
-                self.restart_watcher()
+            if self.dogwatcher:
+                self.dogwatcher.restart()
+
             else:
                 print("Watcher non initialisé, rien à redémarrer.")
 
@@ -452,7 +446,7 @@ class QSEQUOIA2:
         path = QFileDialog.getExistingDirectory(self.dockwidget, "Select stylesDirectory")
         if path:
             print("Selected directory:", path)
-            self.current_style_folder = path  # <--- ici on stocke le dossier
+            self.current_style_folder = path
         else:
             print("No directory selected")
             self.current_style_folder = None
@@ -478,122 +472,15 @@ class QSEQUOIA2:
         self.connect_dialog.show()
 
 
-    def start_watcher(self):
-        if not self.current_project_name:
-            print("[watchdog] Nom de projet vide → surveillance impossible")
-            return
+    def get_watchdog_context(self):
+        """
+        Fournit au watchdog l'état courant du plugin
+        """
+        return {
+            "project_name": self.current_project_name,
+            "project_folder": self.current_project_folder,
+            "downloads_path": self.downloads_path,
+            "style_folder": self.current_style_folder,
+            "watch_mode": self.watch_mode}
 
-        # 🔁 choix du dossier selon le mode
-        if self.watch_mode == "downloads":
-            watch_path = self.downloads_path
-            print("[watchdog] Mode manuel → Téléchargements")
-
-        elif self.watch_mode == "project":
-            if not self.current_project_folder:
-                print("[watchdog] Mode projet sélectionné mais aucun dossier projet")
-                return
-            watch_path = self.current_project_folder
-            print("[watchdog] Mode manuel → Dossier projet")
-
-        else:  # mode AUTO
-            if self.current_project_folder:
-                watch_path = self.current_project_folder
-                print("[watchdog] Mode auto → Dossier projet")
-            else:
-                watch_path = self.downloads_path
-                print("[watchdog] Mode auto → Téléchargements")
-
-        self.stop_watcher()
-
-        event_handler = DownloadEventHandler(self)
-        self.observer = Observer()
-        self.observer.schedule(event_handler, watch_path, recursive=False)
-        self.observer.start()
-
-        self.watch_path = watch_path
-
-
-    def stop_watcher(self):
-        if self.observer:
-            self.observer.stop()
-            self.observer.join()
-            print("[watchdog] Surveillance watchdog arrêtée")
-            self.observer = None
-
-        if hasattr(self, "zip_timer") and self.zip_timer:
-            self.zip_timer.stop()
-            print("[watchdog] Timer ZIP arrêté")
-
-
-    def restart_watcher(self):
-        self.stop_watcher()
-        self.start_watcher()
-
-
-    def process_pending_zips(self):
-        if not self.pending_zips:
-            return
-
-        # On prend le dernier ZIP en attente
-        zip_path = self.pending_zips.pop(0)
-        self.handle_zip(zip_path)
-
-
-
-    def handle_zip(self, zip_path):
-        filename = os.path.basename(zip_path)
-
-        if not self.current_project_name:
-            print("[watchdog] Projet vide → ZIP ignoré")
-            return
-
-        if self.current_project_name.lower() not in filename.lower():
-            print("[watchdog] ZIP ignoré (ne correspond pas au projet)")
-            return
-
-        if getattr(self, "_zip_in_progress", None) == zip_path:
-            print("[watchdog] ZIP déjà en cours de vérification → ignoré")
-            return
-
-        print("[watchdog] Vérification de la stabilité du ZIP…")
-
-        self._zip_in_progress = zip_path
-        self._zip_path = zip_path
-        self._last_size = -1
-
-        self.zip_timer = QTimer(self.iface.mainWindow())
-        self.zip_timer.setInterval(500)
-        self.zip_timer.timeout.connect(self.check_zip_stable)
-        self.zip_timer.start()
-    
-
-    def check_zip_stable(self):
-        print("[DEBUG] check_zip_stable thread =", QThread.currentThread())
-        try:
-            size = os.path.getsize(self._zip_path)
-        except FileNotFoundError:
-            print("[watchdog] ZIP disparu → abandon")
-            self.zip_timer.stop()
-            self._zip_in_progress = None
-            return
-
-        if size == self._last_size:
-            print("[watchdog] ZIP stable → émission du signal")
-
-            self.zip_timer.stop()
-
-            show_add_banner(
-                project_folder=str(self.current_project_folder),
-                downloads_path=str(self.downloads_path),
-                project_name=str(self.current_project_name),
-                style_folder=str(self.current_style_folder),
-                _zip_path=self._zip_path,
-                dockwidget=None)
-
-
-            # Libérer le verrou
-            self._zip_in_progress = None
-            return
-
-        self._last_size = size
 
