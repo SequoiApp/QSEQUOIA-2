@@ -306,6 +306,8 @@ class QSEQUOIA2:
             self.dockwidget.watchdog.clicked.connect(self.open_connect_label)
             self.dockwidget.watchdog.setIcon(QIcon(plugin_path + "/icons/watchdog_settings.svg"))
 
+            self.dockwidget.reload.clicked.connect(self.cleanup)
+
 
 
             # TODO: fix to allow choice of dock location
@@ -482,5 +484,53 @@ class QSEQUOIA2:
             "downloads_path": self.downloads_path,
             "style_folder": self.current_style_folder,
             "watch_mode": self.watch_mode}
+    
+
+    def cleanup(self):
+        """
+        Réinitialise le plugin sans fermer le dockwidget.
+        """
+        print("Cleaning up QSEQUOIA2 plugin...")
+
+        # 1. Réinitialiser les variables internes
+        self.current_project_name = None
+        self.current_project_folder = None
+
+
+        # 2. Réinitialiser les champs GUI si le dockwidget existe
+        if self.dockwidget:
+            # Champ nom du projet
+            self.dockwidget.name.blockSignals(True)
+            self.dockwidget.name.setText("")
+            self.dockwidget.name.blockSignals(False)
+
+            # Réinitialiser la progress bar
+            self.dockwidget.progressBar.setValue(0)
+
+            # Réinitialiser les onglets
+            if hasattr(self.dockwidget, "tools_tab"):
+                self.dockwidget.tools_tab.current_project_name = None
+                self.dockwidget.tools_tab.current_project_folder = None
+
+
+            if hasattr(self.dockwidget, "data_settings_tab"):
+                self.dockwidget.data_settings_tab.current_project_name = None
+                self.dockwidget.data_settings_tab.current_project_folder = None
+
+            # Déconnecter temporairement les boutons si nécessaire
+            # et reconnecter après reset
+            # (optionnel selon besoin)
+
+        # 3. Réinitialiser le watchdog
+        if self.dogwatcher:
+            self.dogwatcher.stop()
+            self.dogwatcher.start()
+
+        # 4. Mettre à jour le connect_dialog si présent
+        if self.connect_dialog:
+            self.connect_dialog.update_watch_path_label()
+
+        print("Plugin cleaned up, GUI intact")
+
 
 

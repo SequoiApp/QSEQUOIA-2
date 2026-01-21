@@ -5,6 +5,7 @@ avec application automatique des styles.
 Auteur : Alexandre Le Bars - Comité des Forêts, Paul Carteron - Racines experts forestiers associés, Matthieu Chevereau - Caisse des dépôts et consignation
 Email : alexlb329@gmail.com
 """
+import os
 from pathlib import Path
 from qgis.core import (
     QgsProject,
@@ -46,7 +47,9 @@ def load_vectors(layer_path, style_folder, project_folder, project_name, group_n
 
     for key, path in layer_path.items():
 
-        layer = QgsVectorLayer(path, key, "ogr")
+        layer_name = os.path.splitext(os.path.basename(path))[0]
+
+        layer = QgsVectorLayer(path, layer_name, "ogr")
         print(f"\nload_vectors : adding {layer}")
 
         if not layer.isValid():

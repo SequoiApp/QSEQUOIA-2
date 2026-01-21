@@ -20,7 +20,7 @@
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
+    <item row="0" column="0">
      <widget class="QScrollArea" name="scrollArea">
       <property name="autoFillBackground">
        <bool>false</bool>
@@ -40,9 +40,9 @@
        <widget class="QWidget" name="verticalLayoutWidget">
         <property name="geometry">
          <rect>
-          <x>40</x>
+          <x>30</x>
           <y>0</y>
-          <width>371</width>
+          <width>381</width>
           <height>161</height>
          </rect>
         </property>
@@ -163,9 +163,9 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>650</y>
+          <y>670</y>
           <width>561</width>
-          <height>91</height>
+          <height>51</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -196,6 +196,31 @@
         </property>
         <property name="text">
          <string>icon</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="reload">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>470</x>
+          <y>630</y>
+          <width>31</width>
+          <height>28</height>
+         </rect>
+        </property>
+        <property name="toolTip">
+         <string>Remettre les compteurs à 0</string>
+        </property>
+        <property name="text">
+         <string>♻️</string>
+        </property>
+        <property name="default">
+         <bool>false</bool>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
         </property>
        </widget>
       </widget>
