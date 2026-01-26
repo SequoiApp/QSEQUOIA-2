@@ -6,11 +6,14 @@ from qgis.PyQt.QtWidgets import QAction
 from qgis.core import QgsApplication, Qgis
 from qgis.PyQt.QtWidgets import QMessageBox,QFileDialog
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QThread, QMetaObject, Qt, pyqtSlot
+
 import yaml, timer
 
 from qsequoia2.scripts.global_settings.global_settings import GlobalSettingsDialog
 from qsequoia2.scripts.utils.variable import get_global_variable
+from qsequoia2.scripts.watchdog.dogwatcher import DogWatcher
+
 
 
 
@@ -27,7 +30,7 @@ from .scripts.utils.connect_label import connect_label
 
 from .scripts.utils.get_download_folder import get_download_folder
 
-from .scripts.utils.extract_files import extract_files
+from .scripts.utils.extract_files import show_add_banner
 
 from .scripts.utils.add_seq_config import add_seq_config
 
@@ -93,9 +96,6 @@ class QSEQUOIA2:
         # valeurs possibles : "auto", "downloads", "project"
 
 
-        self.observer = None
-        self.watch_path = None
-
 
         self.current_project_name = None
 
@@ -109,15 +109,17 @@ class QSEQUOIA2:
         print(" \n==> Style folder at init:", self.current_style_folder)
         self.current_project_folder = None
 
-        self.watcher = QTimer()
-        self.watcher.timeout.connect(self.check_downloads)
 
+        # Création du watchdog
         self.downloads_path = get_download_folder()
         print("Téléchargements :", self.downloads_path)
         self.connect_dialog = None
 
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.check_downloads)
+        self.dogwatcher = DogWatcher(iface=self.iface, get_context_callback=self.get_watchdog_context, parent=None)
+
+
+
+
 
 
         # TODO: We are going to let the user set this up in a future iteration
@@ -304,6 +306,8 @@ class QSEQUOIA2:
             self.dockwidget.watchdog.clicked.connect(self.open_connect_label)
             self.dockwidget.watchdog.setIcon(QIcon(plugin_path + "/icons/watchdog_settings.svg"))
 
+            self.dockwidget.reload.clicked.connect(self.cleanup)
+
 
 
             # TODO: fix to allow choice of dock location
@@ -398,8 +402,9 @@ class QSEQUOIA2:
         
 
         # redémarrer le watcher
-        if self.watcher is not None:
-            self.restart_watcher()
+        if self.dogwatcher:
+            self.dogwatcher.restart()
+
 
             print(f"Project name => {self.current_project_name}")
 
@@ -431,8 +436,9 @@ class QSEQUOIA2:
 
 
         if text:  # éviter de lancer sur vide
-            if self.watcher is not None:
-                self.restart_watcher()
+            if self.dogwatcher:
+                self.dogwatcher.restart()
+
             else:
                 print("Watcher non initialisé, rien à redémarrer.")
 
@@ -442,7 +448,7 @@ class QSEQUOIA2:
         path = QFileDialog.getExistingDirectory(self.dockwidget, "Select stylesDirectory")
         if path:
             print("Selected directory:", path)
-            self.current_style_folder = path  # <--- ici on stocke le dossier
+            self.current_style_folder = path
         else:
             print("No directory selected")
             self.current_style_folder = None
@@ -468,60 +474,63 @@ class QSEQUOIA2:
         self.connect_dialog.show()
 
 
-    def start_watcher(self):
-        if not self.current_project_name:
-            print("[watchdog] Nom de projet vide → surveillance impossible")
-            return
+    def get_watchdog_context(self):
+        """
+        Fournit au watchdog l'état courant du plugin
+        """
+        return {
+            "project_name": self.current_project_name,
+            "project_folder": self.current_project_folder,
+            "downloads_path": self.downloads_path,
+            "style_folder": self.current_style_folder,
+            "watch_mode": self.watch_mode}
+    
 
-        # 🔁 choix du dossier selon le mode
-        if self.watch_mode == "downloads":
-            watch_path = self.downloads_path
-            print("[watchdog] Mode manuel → Téléchargements")
+    def cleanup(self):
+        """
+        Réinitialise le plugin sans fermer le dockwidget.
+        """
+        print("Cleaning up QSEQUOIA2 plugin...")
 
-        elif self.watch_mode == "project":
-            if not self.current_project_folder:
-                print("[watchdog] Mode projet sélectionné mais aucun dossier projet")
-                return
-            watch_path = self.current_project_folder
-            print("[watchdog] Mode manuel → Dossier projet")
-
-        else:  # mode AUTO
-            if self.current_project_folder:
-                watch_path = self.current_project_folder
-                print("[watchdog] Mode auto → Dossier projet")
-            else:
-                watch_path = self.downloads_path
-                print("[watchdog] Mode auto → Téléchargements")
-
-        self.stop_watcher()
-
-        event_handler = DownloadEventHandler(self)
-        self.observer = Observer()
-        self.observer.schedule(event_handler, watch_path, recursive=False)
-        self.observer.start()
-
-        self.watch_path = watch_path
-
-    def stop_watcher(self):
-        if hasattr(self, "observer") and self.observer:
-            self.observer.stop()
-            self.observer.join()
-            print("[watchdog] Surveillance arrêtée")
-            self.observer = None
+        # 1. Réinitialiser les variables internes
+        self.current_project_name = None
+        self.current_project_folder = None
 
 
+        # 2. Réinitialiser les champs GUI si le dockwidget existe
+        if self.dockwidget:
+            # Champ nom du projet
+            self.dockwidget.name.blockSignals(True)
+            self.dockwidget.name.setText("")
+            self.dockwidget.name.blockSignals(False)
 
-    def restart_watcher(self):
-        self.stop_watcher()
-        self.start_watcher()
+            # Réinitialiser la progress bar
+            self.dockwidget.progressBar.setValue(0)
+
+            # Réinitialiser les onglets
+            if hasattr(self.dockwidget, "tools_tab"):
+                self.dockwidget.tools_tab.current_project_name = None
+                self.dockwidget.tools_tab.current_project_folder = None
 
 
-    def check_downloads(self):
-        extract_files(
-            downloads_path=self.downloads_path,
-            project_name=self.current_project_name,
-            style_folder = self.current_style_folder,
-            project_folder = self.current_project_folder,
+            if hasattr(self.dockwidget, "data_settings_tab"):
+                self.dockwidget.data_settings_tab.current_project_name = None
+                self.dockwidget.data_settings_tab.current_project_folder = None
 
-            )
+            # Déconnecter temporairement les boutons si nécessaire
+            # et reconnecter après reset
+            # (optionnel selon besoin)
+
+        # 3. Réinitialiser le watchdog
+        if self.dogwatcher:
+            self.dogwatcher.stop()
+            self.dogwatcher.start()
+
+        # 4. Mettre à jour le connect_dialog si présent
+        if self.connect_dialog:
+            self.connect_dialog.update_watch_path_label()
+
+        print("Plugin cleaned up, GUI intact")
+
+
 

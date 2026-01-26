@@ -5,8 +5,8 @@ from qgis.core import Qgis, QgsProject
 from .forest_settings_dialog import Ui_ForestSettingsDialog
 
 # Import from utils folder
-from ...utils.variable import get_project_variable, set_project_variable, get_formated_surface, get_grouped_values_from_shapefile, sum_surface_from_shapefile
-from ...utils.config import get_path
+from ..utils.variable import get_project_variable, set_project_variable, get_formated_surface, get_grouped_values_from_shapefile, sum_surface_from_shapefile
+from ..utils.config import get_path
 
 class ForestSettingsDialog(QDialog):
     def __init__(self, iface, parent=None):

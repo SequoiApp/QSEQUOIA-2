@@ -4,6 +4,9 @@ Module `load_rasters` : fonctions pour charger des rasters dans QGIS avec style 
 Auteur : Alexandre Le Bars - Comité des Forêts, Paul Carteron - Racines experts forestiers associés, Matthieu Chevereau - Caisse des dépôts et consignation
 Email : alexlb329@gmail.com
 """
+
+import os
+
 from qgis.core import (
     QgsProject,
     QgsRasterLayer,
@@ -44,8 +47,10 @@ def load_rasters(layer_path, project_folder, project_name, style_folder, group_n
 
     for key, path in layer_path.items():
 
+        layer_name = os.path.splitext(os.path.basename(path))[0]
+
         # --- Charger le raster correctement ---
-        layer = QgsRasterLayer(path, key, "gdal")
+        layer = QgsRasterLayer(path, layer_name, "gdal")
         print(f"\nload_rasters : adding {layer}")
 
         if not layer.isValid():

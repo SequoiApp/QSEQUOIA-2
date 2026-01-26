@@ -97,11 +97,11 @@ class QSEQUOIA2DockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.tabWidget.addTab(self.tools_tab, QIcon(plugin_path + "/icons/tools_settings.svg"),"")
         self.tabWidget.setTabToolTip(0, "Outils et fonctions")
         self.tabWidget.addTab(project_settings_tab, QIcon(plugin_path + "/icons/project_settings.svg"),"")
-        self.tabWidget.setTabToolTip(1, "Paramètres du projet")
+        self.tabWidget.setTabToolTip(1, "Cartographie")
         self.tabWidget.addTab(forest_settings_tab, QIcon(plugin_path + "/icons/forest_settings.svg"),"")
-        self.tabWidget.setTabToolTip(2, "Paramètres forestiers")
+        self.tabWidget.setTabToolTip(2, "Paramètre de la propriété")
         self.tabWidget.addTab(self.data_settings_tab, QIcon(plugin_path + "/icons/add_data.svg"),"")
-        self.tabWidget.setTabToolTip(3, "Paramètres de données")
+        self.tabWidget.setTabToolTip(3, "Ajout de données")
 
 
 

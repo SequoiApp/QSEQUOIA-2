@@ -13,6 +13,8 @@ import yaml
 # Import from utils folder
 from ..utils.variable import get_global_variable, set_global_variable
 
+from .go_to_maps import open_maps
+
 
 
 
@@ -27,10 +29,13 @@ class GlobalSettingsDialog(QDialog):
         # Charger les paramètres existants
         self.load_settings()
 
+
+
         # Connecter le bouton OK
         self.ui.buttonBox.accepted.connect(self.save_settings)
         self.ui.stylesButton.clicked.connect(self.select_styles_directory)
         self.ui.modelsButton.clicked.connect(self.select_models_directory)
+
 
     def load_settings(self):
         
@@ -46,17 +51,33 @@ class GlobalSettingsDialog(QDialog):
         user = get_global_variable("user_full_name")
         self.ui.userInput.setText(user)
 
+        # Organisation
+
+        orga_name = get_global_variable("organisation")
+        self.ui.orga.setText(orga_name)
+
+        # Adresse de l'organisation
+
+        adress = get_global_variable("adress_organisation")
+        self.ui.adress.setText(adress)
+
+        self.ui.open_maps.clicked.connect(lambda : open_maps(adress))
+
     def save_settings(self):
         # Récupère les paramètres
 
         styles_dir = self.ui.stylesInput.text()
         models_dir = self.ui.modelsInput.text()
         user = self.ui.userInput.text()
+        adress = self.ui.adress.text()
+        orga_name = self.ui.orga.text()
         
 
         set_global_variable("styles_directory", styles_dir)
         set_global_variable("models_directory", models_dir)
         set_global_variable("user_full_name", user)
+        set_global_variable("adress_organisation", adress)
+        set_global_variable("organisation", orga_name)
         
 
 
@@ -72,3 +93,7 @@ class GlobalSettingsDialog(QDialog):
         dir_path = QFileDialog.getExistingDirectory(self, "Sélectionner le répertoire de travail", str(modeles_path))
         if dir_path:
             self.ui.modelsInput.setText(dir_path)
+
+
+
+    

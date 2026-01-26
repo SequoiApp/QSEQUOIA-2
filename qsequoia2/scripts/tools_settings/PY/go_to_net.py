@@ -1,8 +1,9 @@
-# Ce module reprend des fonctions qui renvoie l'utilisateur les pages web correspondantes
+"""Ce module reprend des fonctions qui renvoie l'utilisateur les pages web correspondantes"""
 
 import webbrowser, os, yaml
+from qgis.gui import QgsMessageBar
 
-def go_to_net(action, dockwidget=None, iface=None):
+def go_to_net(action, iface, dockwidget=None):
     """
     Ouvre un outil web en récupérant son URL dans le YAML des URLs
     """
@@ -27,6 +28,7 @@ def go_to_net(action, dockwidget=None, iface=None):
     item_data = urls_config.get(category, {}).get(key)
     if not item_data:
         print(f"Item introuvable dans YAML : {category} / {key}")
+        iface.messageBar().pushWarning(f"Impossible d'ouvrir {display_name}!")
         return
 
     url = item_data.get("url")
@@ -34,10 +36,11 @@ def go_to_net(action, dockwidget=None, iface=None):
 
     if url:
         print(f"Go to NET => ouverture de {display_name} ({url})")
+        iface.messageBar().pushSuccess("Ouverture réussie", f"Ouverture de {display_name} !")
         webbrowser.open(url)
     else:
         print(f"Aucune URL trouvée pour {display_name}")
-
+        iface.messageBar().pushWarning(f"Impossible d'ouvrir {display_name}!")
 
 
 
