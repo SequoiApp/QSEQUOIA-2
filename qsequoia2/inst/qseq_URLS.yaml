@@ -53,7 +53,18 @@ wmts:
   wmts_lidar_mnh:
     display_name: "LIDAR MNH"
     url: contextualWMSLegend=0&crs=EPSG:3857&dpiMode=7&featureCount=10&format=image/png&layers=IGNF_LIDAR-HD_MNH_ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW&styles=normal&tileMatrixSet=PM_0_18&tilePixelRatio=0&url=https://data.geopf.fr/wmts?SERVICE%3DWMTS%26VERSION%3D1.0.0%26REQUEST%3DGetCapabilities
-
+  wmts_ocs_2017-2020:
+    display_name: "OCS_COSIA_2017-2020"
+    url: contextualWMSLegend=0&crs=EPSG:3857&dpiMode=7&featureCount=10&format=image/png&layers=IGNF_COSIA_2024-2026&styles=normal&tileMatrixSet=PM_6_18&tilePixelRatio=0&url=https://data.geopf.fr/wmts?SERVICE%3DWMTS%26VERSION%3D1.0.0%26REQUEST%3DGetCapabilities
+  wmts_ocs_2021-2023:
+    display_name: "OCS_COSIA_2021-2023"
+    url: contextualWMSLegend=0&crs=EPSG:3857&dpiMode=7&featureCount=10&format=image/png&layers=IGNF_COSIA_2021-2023&styles=normal&tileMatrixSet=PM_6_18&tilePixelRatio=0&url=https://data.geopf.fr/wmts?SERVICE%3DWMTS%26VERSION%3D1.0.0%26REQUEST%3DGetCapabilities
+  wmts_ocs_2024-2025:
+    display_name: "OCS_COSIA_2024-2025"
+    url: contextualWMSLegend=0&crs=EPSG:3857&dpiMode=7&featureCount=10&format=image/png&layers=IGNF_COSIA_2024-2026&styles=normal&tileMatrixSet=PM_6_18&tilePixelRatio=0&url=https://data.geopf.fr/wmts?SERVICE%3DWMTS%26VERSION%3D1.0.0%26REQUEST%3DGetCapabilities
+  wmts_IGNF_forêts-anciennes:
+    display_name: "IGNF_forêt-anciennes"
+    url: contextualWMSLegend=0&crs=EPSG:3857&dpiMode=7&featureCount=10&format=image/png&layers=IGNF_FORETS-ANCIENNES&styles=normal&tileMatrixSet=PM_6_16&tilePixelRatio=0&url=https://data.geopf.fr/wmts?SERVICE%3DWMTS%26VERSION%3D1.0.0%26REQUEST%3DGetCapabilities
 
 Outils web principaux:
 
