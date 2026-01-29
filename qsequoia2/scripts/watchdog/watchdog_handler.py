@@ -10,6 +10,11 @@ suivis par le DogWatcher et les ajoute à la file d'attente de traitement.
 Auteur : Alexandre Le bars - Comité des forêts
 Date   : 2026-01-20
 """
+import sys, os
+
+script_dir = os.path.dirname(__file__)
+watchdog_path = os.path.join(script_dir, '..','..','inst','lib')
+sys.path.insert(0, watchdog_path)
 
 from watchdog.events import FileSystemEventHandler
 
