@@ -11,7 +11,14 @@ Auteur : Alexandre Le bars - Comité des forêts
 Date   : 2026-01-20
 """
 
-import os
+
+import sys, os
+
+script_dir = os.path.dirname(__file__)
+watchdog_path = os.path.join(script_dir, '..','..','inst','lib')
+sys.path.insert(0, watchdog_path)
+
+
 from PyQt5.QtCore import QObject, QTimer, QThread
 from watchdog.observers import Observer
 
