@@ -37,7 +37,7 @@ from .scripts.utils.add_seq_config import add_seq_config
 import sys
 
 plugin_path = os.path.dirname(__file__)
-watchdog_path = os.path.join(plugin_path, "watchdog_lib")
+watchdog_path = os.path.join(plugin_path, "inst", "lib")
 
 if watchdog_path not in sys.path:
     sys.path.insert(0, watchdog_path)
