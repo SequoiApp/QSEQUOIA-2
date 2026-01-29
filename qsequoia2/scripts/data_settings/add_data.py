@@ -283,7 +283,7 @@ class AddDataDialog(QDialog):
         print(f"\n[add_data] => Clic sur l'item : {label}")
 
 
-
+        current_tab = self.ui.tabWidget.tabText(self.ui.tabWidget.currentIndex())
         # --- Détection automatique des sections (items parents) ---
         if item is not None and item.parent() is None:
             print(f"\n[add_data] => Clique sur une section : {label}")
@@ -291,10 +291,12 @@ class AddDataDialog(QDialog):
 
 
         # --- Vérifications projet ---
-        if not self.current_project_name or self.current_project_name in [
+        if current_tab =="WMS/WFS":
+            pass
+
+        elif not self.current_project_name or self.current_project_name in [
             "Nom du projet - doit être le même que CARTO FUTAIE ou RSEQUOIA",
-            "DefaultProject"
-        ]:
+            "DefaultProject"]:
             QMessageBox.information(
                 self,
                 "Nom absent",
@@ -310,25 +312,27 @@ class AddDataDialog(QDialog):
             )
             return
 
-        current_tab = self.ui.tabWidget.tabText(self.ui.tabWidget.currentIndex())
+
 
         # --- Appel dynamique ---
 
         # Pour les WMTS
 
-        if current_tab == "WMS/WFS":  # index de l'onglet "Paramètres de données"
+        if current_tab == "WMS/WFS":
             load_wmts([label])
 
         # Pour les Rasters
 
-        if current_tab == "RASTERS":
+        elif current_tab == "RASTERS":
+            if current_tab == "WMS/WFS":
+                pass
             if self.current_project_folder is None:
 
                 layer_paths = {}
 
                 files, _ = QFileDialog.getOpenFileNames(
                     parent=self,
-                    caption="Sélectionner une couche",
+                    caption="Pas de dossier de projet, sélectionnez une couche",
                     directory="",
                     filter="Couches raster (*.tif *.tiff *.png)"
                 )
@@ -359,13 +363,15 @@ class AddDataDialog(QDialog):
         # Pour les vecteurs
 
         else:
-            if self.current_project_folder is None:
+            if current_tab =="WMS/WFS":
+                pass
+            elif self.current_project_folder is None :
 
                 layer_paths = {}
 
                 files, _ = QFileDialog.getOpenFileNames(
                     parent=self,
-                    caption="Sélectionner une couche",
+                    caption="Pas de dossier de projet, sélectionnez une couche",
                     directory="",
                     filter="Couches vecteur (*.shp *.gpkg *.geojson)"
                 )
