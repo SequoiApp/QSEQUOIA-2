@@ -72,13 +72,14 @@ class QSEQUOIA2DockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.tools_ui.setupUi(self.tools_tab)
         self.tools_tab = ToolsSettingsDialog(current_project_name=self.project_name, current_style_folder=self.current_style_folder, downloads_path=self.downloads_path, current_project_folder=self.current_project_folder, iface = self.iface)
 
+        forest_settings_tab = QWidget()
+        self.forest_settings_ui = Ui_ForestSettingsDialog()
+        self.forest_settings_ui.setupUi(forest_settings_tab)
+
         project_settings_tab = QWidget()
         self.project_settings_ui = Ui_ProjectSettingsDialog()
         self.project_settings_ui.setupUi(project_settings_tab)
 
-        forest_settings_tab = QWidget()
-        self.forest_settings_ui = Ui_ForestSettingsDialog()
-        self.forest_settings_ui.setupUi(forest_settings_tab)
 
         self.data_settings_tab = QWidget()
 
