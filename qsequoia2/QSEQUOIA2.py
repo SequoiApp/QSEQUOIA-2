@@ -264,8 +264,8 @@ class QSEQUOIA2:
 
             # bouttons d'ajout de couches
 
-            self.dockwidget.add_layers.clicked.connect(self.non_implemented_yet)
-            self.dockwidget.add_layers.setIcon(QIcon(plugin_path + "/icons/add_data.svg"))
+            self.dockwidget.add_on.clicked.connect(self.non_implemented_yet)
+            self.dockwidget.add_on.setIcon(QIcon(plugin_path + "/icons/add_data.svg"))
 
                                 
 
@@ -407,6 +407,11 @@ class QSEQUOIA2:
 
 
             print(f"Project name => {self.current_project_name}")
+        
+        self.iface.messageBar().pushMessage(
+            "Qsequoia2",
+            f"Dossier {self.current_project_name} sélectionné avec succès : {self.current_project_folder}",
+            level=Qgis.Success, duration=10)
 
     
     def on_project_name_changed(self, text):
