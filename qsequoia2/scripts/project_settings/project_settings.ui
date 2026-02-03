@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ProjectSettingsDialog</class>
- <widget class="QWidget" name="ProjectSettingsDialog">
+ <class>none</class>
+ <widget class="QWidget" name="none">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -24,14 +24,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="comboBox_projects">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
+      <widget class="QWidget" name="combo_projects_container" native="true"/>
      </item>
     </layout>
    </item>
@@ -103,7 +96,7 @@
         <x>0</x>
         <y>0</y>
         <width>349</width>
-        <height>195</height>
+        <height>201</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="scrollLayout">

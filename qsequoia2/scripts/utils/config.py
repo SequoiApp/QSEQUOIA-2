@@ -1,6 +1,6 @@
 # region IMPORT
 
-# region IMPORT
+
 """
 Module `config.py` : gestion des chemins, structure SIG, projets, styles et WMTS.
 

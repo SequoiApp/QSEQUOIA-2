@@ -146,7 +146,7 @@ class AddDataDialog(QDialog):
                 ext = entry.get('ext', "")
 
                 # On ne garde que geojson ou gpkg
-                if ext not in ["geojson","gpkg"]:
+                if ext not in ["geojson","gpkg","shp","kml"]:
                     continue
 
                 category_name = name.split("_")[0] if "_" in name else name

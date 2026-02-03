@@ -1,6 +1,12 @@
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox
+
+from PyQt5.QtWidgets import QDialog, QMessageBox, QFileDialog
+from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QCheckBox,QComboBox
+from PyQt5.QtCore import Qt, QTimer
+
+
 from qgis.core import QgsProject
-from .project_settings_dialog import Ui_ProjectSettingsDialog
+
 #from .project_settings_service import compute_layout_info, import_layout, configure_layout
 
 # Import from utils folder
@@ -11,46 +17,101 @@ from .project_settings_dialog import Ui_ProjectSettingsDialog
 #from ..forest_settings.forest_settings import ForestSettingsDialog
 
 from pathlib import Path
+import os,yaml, sys
+from PyQt5 import QtCore, QtGui, QtWidgets
+from project_settings_dialog import Ui_ProjectSettingsDialog
+
 
 class ProjectSettingsDialog(QDialog):
-
     def __init__(self, current_project_name, current_style_folder, downloads_path, current_project_folder, iface, parent=None):
         super().__init__(parent)
         self.iface = iface
-        self.current_project_name = current_project_name
-        self.current_style_folder = current_style_folder
-        self.downloads_path = downloads_path
-        self.current_project_folder = current_project_folder
 
-        self.project = QgsProject.instance()
+        self.current_project_name=current_project_name
+        self.current_style_folder=current_style_folder
+        self.downloads_path=downloads_path
+        self.curent_project_folder=current_project_folder
+
         self.ui = Ui_ProjectSettingsDialog()
         self.ui.setupUi(self)
-        self.setting()
 
-        self.ui.Mise_en_page.clicked.connect(self.setting)
-    #Test
-    def setting(self):
+        self.combo_projects = QtWidgets.QComboBox(self)
+        self.combo_projects.setObjectName("combo_projects")
 
-        print(f"project settings récupère : {self.current_project_name}")
-        print(f"project settings récupère : {self.current_project_folder}")
-        print(f"project settings récupère : {self.current_style_folder}")
-        print(f"project settings récupère : {self.downloads_path}")
+        container = self.ui.combo_projects_container
+        layout = container.layout()
+        if layout is None:
+            layout = QtWidgets.QVBoxLayout(container)
+            container.setLayout(layout)
+        layout.addWidget(self.combo_projects)
 
+        self.get_current_project_type()
+
+        self.current_project_type = None
+
+    
+    def layers_tab(self):
+        """
+        Crée et remplit les onglets de l'objet layers_tab avec un onglet vecteurs et raster,
+        lit les couches de project.yaml, si il les trouves dans SEQ_layers.yaml il les ajoute en checkbox dans les onglets
+        se modifie en fonction du projet choisi
+        """
+            
+    def get_current_project_type(self):
+        """Détermine les projets disponibles via project.yaml et remplit la combo Python."""
+        yaml_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "inst", "project.yaml")
+        )
+
+        with open(yaml_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        if not isinstance(data, dict):
+            return
+
+        project_type = list(map(str, data.keys()))
+        print(project_type)
+
+        cb = self.combo_projects  # ← la combo créée dans __init__
+        cb.blockSignals(True)
+        cb.clear()
+
+        # Variante A — propre avec placeholder (Qt ≥ 5.12/5.15)
+        try:
+            cb.addItems(project_type)
+            cb.setCurrentIndex(-1)  # aucune sélection
+            cb.setPlaceholderText("Sélectionner un thème…")
+        except AttributeError:
+            # Variante B — fallback universel : 1er item = invitation désactivée
+            cb.addItem("— Sélectionner un thème —")
+            cb.setItemData(0, 0, Qt.UserRole - 1)     # disabled
+            cb.setItemData(0, Qt.gray, Qt.ForegroundRole)
+            cb.addItems(project_type)
+            cb.setCurrentIndex(0)
+
+        cb.blockSignals(False)
+
+        # Logs de contrôle
+        print("count:", cb.count())
+        for i in range(cb.count()):
+            print("item", i, "=", cb.itemText(i))
+
+
+        # --- après la création et insertion de la combo ---
+        QtCore.QTimer.singleShot(0, self._finalize_ui)
+
+    def _finalize_ui(self):
+        self.layout().activate()
+        self.adjustSize()
+        self.repaint()
+
+
+
+
+    def create_new_project():
+        """Ajoute la possibilité de créer un nouveau projet personnalisé"""
 
 """
-        # Liste des projets possibles
-        self.projects_list = get_project()
-       
-        cb = self.ui.comboBox_projects
-        cb.addItem("") 
-        cb.addItems(self.projects_list.values())
-        cb.setCurrentIndex(0)
-
-        # Connect composeur chekbox to occup percentage
-        self.ui.cb_composeur.toggled.connect(self.ui.dsb_occup.setEnabled)
-
-
-
 
 
     # ------------------------------------------------------------------------
