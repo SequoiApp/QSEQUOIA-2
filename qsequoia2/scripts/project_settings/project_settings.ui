@@ -19,7 +19,7 @@
      <item>
       <widget class="QLabel" name="label_project">
        <property name="text">
-        <string>Sélectionner un projet :</string>
+        <string>Sélectionner un theme de carte :</string>
        </property>
       </widget>
      </item>
@@ -143,9 +143,12 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="Mise_en_page">
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(249, 255, 248);</string>
+       </property>
        <property name="text">
-        <string>OK</string>
+        <string>Mise en page</string>
        </property>
       </widget>
      </item>

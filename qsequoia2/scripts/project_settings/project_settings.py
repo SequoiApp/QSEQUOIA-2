@@ -1,25 +1,43 @@
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox
 from qgis.core import QgsProject
 from .project_settings_dialog import Ui_ProjectSettingsDialog
-from .project_settings_service import compute_layout_info, import_layout, configure_layout
+#from .project_settings_service import compute_layout_info, import_layout, configure_layout
 
 # Import from utils folder
-from ...utils.config import get_project, get_path, get_project_canvas, get_project_layout
-from ...utils.layers import configure_snapping 
-from ...utils.utils import show_message, clear_project, create_project
-from ...utils.variable import set_project_variable, get_project_variable, get_global_variable
-from ..forest_settings.forest_settings import ForestSettingsDialog
+#from ...utils.config import get_project, get_path, get_project_canvas, get_project_layout
+#from ...utils.layers import configure_snapping 
+#from ...utils.utils import show_message, clear_project, create_project
+#from ...utils.variable import set_project_variable, get_project_variable, get_global_variable
+#from ..forest_settings.forest_settings import ForestSettingsDialog
 
 from pathlib import Path
 
 class ProjectSettingsDialog(QDialog):
-    def __init__(self, iface, parent=None):
+
+    def __init__(self, current_project_name, current_style_folder, downloads_path, current_project_folder, iface, parent=None):
         super().__init__(parent)
         self.iface = iface
+        self.current_project_name = current_project_name
+        self.current_style_folder = current_style_folder
+        self.downloads_path = downloads_path
+        self.current_project_folder = current_project_folder
+
         self.project = QgsProject.instance()
         self.ui = Ui_ProjectSettingsDialog()
         self.ui.setupUi(self)
+        self.setting()
 
+        self.ui.Mise_en_page.clicked.connect(self.setting)
+    #Test
+    def setting(self):
+
+        print(f"project settings récupère : {self.current_project_name}")
+        print(f"project settings récupère : {self.current_project_folder}")
+        print(f"project settings récupère : {self.current_style_folder}")
+        print(f"project settings récupère : {self.downloads_path}")
+
+
+"""
         # Liste des projets possibles
         self.projects_list = get_project()
        
@@ -30,6 +48,14 @@ class ProjectSettingsDialog(QDialog):
 
         # Connect composeur chekbox to occup percentage
         self.ui.cb_composeur.toggled.connect(self.ui.dsb_occup.setEnabled)
+
+
+
+
+
+    # ------------------------------------------------------------------------
+
+    # ------------------------------------------------------------------------
 
     def _get_project_key(self):
         selected_project_name = self.ui.comboBox_projects.currentText()
@@ -100,3 +126,4 @@ class ProjectSettingsDialog(QDialog):
 
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Une erreur est survenue :\n{e}")
+"""

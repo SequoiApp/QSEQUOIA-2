@@ -34,6 +34,7 @@ from PyQt5.QtGui import QIcon
 from qsequoia2.scripts.data_settings.add_data import AddDataDialog
 from qsequoia2.scripts.forest_settings.forest_settings_dialog import Ui_ForestSettingsDialog
 from qsequoia2.scripts.project_settings.project_settings_dialog import Ui_ProjectSettingsDialog
+from qsequoia2.scripts.project_settings.project_settings import ProjectSettingsDialog
 from qsequoia2.scripts.data_settings.add_data_dialog import Ui_AddDataDialog
 from qsequoia2.scripts.tools_settings.tools_settings_dialog import Ui_ToolsSettingsDialog
 from qsequoia2.scripts.tools_settings.tools_settings import ToolsSettingsDialog
@@ -79,6 +80,7 @@ class QSEQUOIA2DockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         project_settings_tab = QWidget()
         self.project_settings_ui = Ui_ProjectSettingsDialog()
         self.project_settings_ui.setupUi(project_settings_tab)
+        self.project_settings_tab = ProjectSettingsDialog(current_project_name=self.project_name, current_style_folder=self.current_style_folder, downloads_path=self.downloads_path, current_project_folder=self.current_project_folder, iface = self.iface)
 
 
         self.data_settings_tab = QWidget()

@@ -323,7 +323,7 @@ def get_style(layer_path, style_folder):
     
     
 
-    
+#endregion
 
 
 
