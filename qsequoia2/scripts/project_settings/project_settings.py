@@ -19,10 +19,10 @@ from qgis.core import QgsProject
 from pathlib import Path
 import os,yaml, sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-from project_settings_dialog import Ui_ProjectSettingsDialog
+from .project_settings_dialog import Ui_ProjectSettingsDialog
 
 
-class ProjectSettingsDialog(QDialog):
+class ProjectSettingsDialog(QDialog, Ui_ProjectSettingsDialog):
     def __init__(self, current_project_name, current_style_folder, downloads_path, current_project_folder, iface, parent=None):
         super().__init__(parent)
         self.iface = iface
@@ -32,79 +32,57 @@ class ProjectSettingsDialog(QDialog):
         self.downloads_path=downloads_path
         self.curent_project_folder=current_project_folder
 
-        self.ui = Ui_ProjectSettingsDialog()
-        self.ui.setupUi(self)
+        #self.ui = Ui_ProjectSettingsDialog()
+        self.setupUi(self)
+        self.dock = parent
 
-        self.combo_projects = QtWidgets.QComboBox(self)
-        self.combo_projects.setObjectName("combo_projects")
+        self.projects_list = self.get_current_project_type()
 
-        container = self.ui.combo_projects_container
-        layout = container.layout()
-        if layout is None:
-            layout = QtWidgets.QVBoxLayout(container)
-            container.setLayout(layout)
-        layout.addWidget(self.combo_projects)
+        cb = self.comboBox_projects
+        cb.addItem("") 
+        cb.addItems(self.projects_list)
+        cb.setCurrentIndex(0)
 
-        self.get_current_project_type()
+        self.comboBox_projects.currentIndexChanged.connect(self._on_project_changed)
 
-        self.current_project_type = None
-
-    
-    def layers_tab(self):
-        """
-        Crée et remplit les onglets de l'objet layers_tab avec un onglet vecteurs et raster,
-        lit les couches de project.yaml, si il les trouves dans SEQ_layers.yaml il les ajoute en checkbox dans les onglets
-        se modifie en fonction du projet choisi
-        """
-            
+     
     def get_current_project_type(self):
-        """Détermine les projets disponibles via project.yaml et remplit la combo Python."""
+        """Détermine les projets disponibles via project.yaml."""
         yaml_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "..", "..", "inst", "project.yaml")
-        )
-
+            os.path.join(os.path.dirname(__file__), "..", "..", "inst", "project.yaml"))
+        
         with open(yaml_path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
 
         if not isinstance(data, dict):
             return
+        
+        return [str(k) for k in data.keys()]
+    
+    def _get_project_key(self):
+        """
+        Retourne le type de projet choisi par l'utilisateur
+        """
+        return self.comboBox_projects.currentText()
 
-        project_type = list(map(str, data.keys()))
-        print(project_type)
-
-        cb = self.combo_projects  # ← la combo créée dans __init__
-        cb.blockSignals(True)
-        cb.clear()
-
-        # Variante A — propre avec placeholder (Qt ≥ 5.12/5.15)
-        try:
-            cb.addItems(project_type)
-            cb.setCurrentIndex(-1)  # aucune sélection
-            cb.setPlaceholderText("Sélectionner un thème…")
-        except AttributeError:
-            # Variante B — fallback universel : 1er item = invitation désactivée
-            cb.addItem("— Sélectionner un thème —")
-            cb.setItemData(0, 0, Qt.UserRole - 1)     # disabled
-            cb.setItemData(0, Qt.gray, Qt.ForegroundRole)
-            cb.addItems(project_type)
-            cb.setCurrentIndex(0)
-
-        cb.blockSignals(False)
-
-        # Logs de contrôle
-        print("count:", cb.count())
-        for i in range(cb.count()):
-            print("item", i, "=", cb.itemText(i))
+    def _on_project_changed(self):
+        """
+        """
+        project_key = self._get_project_key()
+        print(project_key)
 
 
-        # --- après la création et insertion de la combo ---
-        QtCore.QTimer.singleShot(0, self._finalize_ui)
+    
 
-    def _finalize_ui(self):
-        self.layout().activate()
-        self.adjustSize()
-        self.repaint()
 
+    def layers_tab(self):
+        """
+        Crée et remplit les onglets de l'objet layers_tab avec un onglet sequoia, vecteur et raster,
+        - Affiche l'ensemble des couches de SEQ_layers.YAML sous formes de checkbox
+        - Par défaut les couches cochées sont celles renseignées dans project.yaml selon le type de projet choisi
+        """
+        project_type = self._get_project_key()
+        print("Chargement des couches pour :", project_type)
 
 
 

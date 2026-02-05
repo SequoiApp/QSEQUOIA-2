@@ -24,7 +24,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QWidget" name="combo_projects_container" native="true"/>
+      <widget class="QComboBox" name="comboBox_projects"/>
      </item>
     </layout>
    </item>
@@ -96,7 +96,7 @@
         <x>0</x>
         <y>0</y>
         <width>349</width>
-        <height>201</height>
+        <height>195</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="scrollLayout">

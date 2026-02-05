@@ -9,6 +9,7 @@
 
 import os, yaml
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5.QtCore import Qt, QTimer
 from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QTreeWidget, QTreeWidgetItem
 
 
@@ -19,5 +20,3 @@ class Ui_ProjectSettingsDialog(FORM_CLASS):
     def setupUi(self, ProjectSettingsDialog):
         super().setupUi(ProjectSettingsDialog)
         ProjectSettingsDialog.setObjectName("ProjectSettingsDialog")
-
-

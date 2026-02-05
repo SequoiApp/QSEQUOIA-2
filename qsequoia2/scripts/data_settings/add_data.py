@@ -34,7 +34,7 @@ from qsequoia2.scripts.tools_settings.PY.unload import unknown_data
 
 
 from .add_data_dialog import Ui_AddDataDialog
-from itertools import chain
+
 
 
 # Import from utils folder
